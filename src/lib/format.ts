@@ -21,7 +21,7 @@ export function getMonthOptions(includeAll = false) {
   for (let m = 0; m < 12; m++) {
     const d = new Date(year, m, 1);
     const val = `${year}-${String(m + 1).padStart(2, "0")}`;
-    const label = d.toLocaleDateString("en-US", { month: includeAll ? "long" : "short", year: "numeric" });
+    const label = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
     months.push({ value: val, label });
   }
   return months;
