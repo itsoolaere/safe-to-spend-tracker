@@ -2,10 +2,12 @@ import { useBudget } from "@/context/BudgetContext";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { ArrowUpRight, ArrowDownRight, Wallet, AlertTriangle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import AddTransactionForm from "@/components/AddTransactionForm";
 
 const EXPENSE_COLORS = [
   "hsl(4, 72%, 60%)",
@@ -26,14 +28,12 @@ const INCOME_COLORS = [
 ];
 
 function getMonthOptions() {
-  const months: { value: string; label: string }[] = [
-    { value: "all", label: "All Time" },
-  ];
+  const months: { value: string; label: string }[] = [];
   const now = new Date();
   for (let i = 0; i < 12; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    const label = d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    const label = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
     months.push({ value: val, label });
   }
   return months;
@@ -73,11 +73,12 @@ function CategoryTooltip({ active, payload, label, transactions }: CustomTooltip
 export default function Dashboard() {
   const { data } = useBudget();
   const { transactions } = data;
-  const [period, setPeriod] = useState("all");
   const monthOptions = useMemo(getMonthOptions, []);
+  const [period, setPeriod] = useState(monthOptions[0]?.value || "");
+  const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense">("all");
 
   const filtered = useMemo(() => {
-    if (period === "all") return transactions;
+    if (!period) return transactions;
     return transactions.filter(t => t.date.startsWith(period));
   }, [transactions, period]);
 
@@ -105,25 +106,31 @@ export default function Dashboard() {
   const expenseTransactions = useMemo(() => filtered.filter(t => t.type === "expense"), [filtered]);
   const incomeTransactions = useMemo(() => filtered.filter(t => t.type === "income"), [filtered]);
 
-  const recent = filtered.slice(0, 5);
+  const recentFiltered = useMemo(() => {
+    const base = filtered.slice(0, 10);
+    if (typeFilter === "all") return base;
+    return base.filter(t => t.type === typeFilter);
+  }, [filtered, typeFilter]);
+
+  const recent = recentFiltered.slice(0, 5);
 
   return (
     <div className="space-y-6 pb-20 sm:pb-0">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div>
-          <h2 className="font-heading text-2xl font-bold tracking-tight">Dashboard</h2>
-          <p className="text-muted-foreground text-sm mt-1">Your financial overview</p>
-        </div>
-        <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {monthOptions.map(m => (
-              <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Month filter - horizontal scroll */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
+        {monthOptions.map(m => (
+          <button
+            key={m.value}
+            onClick={() => setPeriod(m.value)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
+              period === m.value
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {m.label}
+          </button>
+        ))}
       </div>
 
       {/* Warning */}
@@ -179,6 +186,9 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      {/* Add Transaction Form */}
+      <AddTransactionForm />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Expense chart */}
         <Card className="border-none shadow-sm">
@@ -233,10 +243,30 @@ export default function Dashboard() {
 
       {/* Recent transactions */}
       <Card className="border-none shadow-sm">
-        <CardHeader>
+        <CardHeader className="flex-row items-center justify-between space-y-0">
           <CardTitle className="text-base font-heading">Recent Transactions</CardTitle>
+          <Link to="/history" className="text-xs text-primary hover:underline font-medium">
+            See all transactions →
+          </Link>
         </CardHeader>
         <CardContent>
+          {/* Type filter */}
+          <div className="flex gap-1 mb-4">
+            {(["all", "income", "expense"] as const).map(t => (
+              <button
+                key={t}
+                onClick={() => setTypeFilter(t)}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                  typeFilter === t
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t === "all" ? "All" : t === "income" ? "Income" : "Expenses"}
+              </button>
+            ))}
+          </div>
+
           {recent.length === 0 ? (
             <p className="text-muted-foreground text-sm text-center py-8">No transactions yet</p>
           ) : (

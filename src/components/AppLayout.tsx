@@ -1,10 +1,8 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, PlusCircle, BarChart3, List } from "lucide-react";
+import { LayoutDashboard, List } from "lucide-react";
 
 const links = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/add", label: "Add", icon: PlusCircle },
-  { to: "/budget", label: "Budget", icon: BarChart3 },
   { to: "/history", label: "History", icon: List },
 ];
 

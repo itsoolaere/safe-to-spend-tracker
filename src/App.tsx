@@ -23,7 +23,6 @@ const App = () => (
           <AppLayout>
             <Routes>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/add" element={<AddTransaction />} />
               <Route path="/budget" element={<BudgetVsActual />} />
               <Route path="/history" element={<TransactionHistory />} />
               <Route path="*" element={<NotFound />} />
