@@ -72,10 +72,9 @@ function CategoryTooltip({ active, payload, label, transactions }: CustomTooltip
 }
 
 export default function Dashboard() {
-  const { data } = useBudget();
+  const { data, period, setPeriod } = useBudget();
   const { transactions } = data;
   const monthOptions = useMemo(getMonthOptions, []);
-  const [period, setPeriod] = useState(monthOptions[0]?.value || "");
   const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense">("all");
 
   const filtered = useMemo(() => {

@@ -24,9 +24,8 @@ function getMonthOptions() {
 }
 
 export default function BudgetVsActual() {
-  const { data, updateBudgets } = useBudget();
+  const { data, updateBudgets, period, setPeriod } = useBudget();
   const monthOptions = useMemo(getMonthOptions, []);
-  const [selectedMonth, setSelectedMonth] = useState(monthOptions[0]?.value || "");
 
   // New budget entry form
   const [newCategory, setNewCategory] = useState("");
@@ -36,10 +35,10 @@ export default function BudgetVsActual() {
   const monthlyExpenses = useMemo(() => {
     const map: Record<string, number> = {};
     data.transactions
-      .filter(t => t.type === "expense" && t.date.startsWith(selectedMonth))
+      .filter(t => t.type === "expense" && t.date.startsWith(period))
       .forEach(t => { map[t.category] = (map[t.category] || 0) + t.amount; });
     return map;
-  }, [data.transactions, selectedMonth]);
+  }, [data.transactions, period]);
 
   const categories = data.categories.expense.filter(c => c !== "Other");
   const budgetMap = Object.fromEntries(data.budgets.map(b => [b.category, b.limit]));
@@ -97,7 +96,7 @@ export default function BudgetVsActual() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+          <Select value={period} onValueChange={setPeriod}>
             <SelectTrigger className="w-[170px]">
               <SelectValue />
             </SelectTrigger>
