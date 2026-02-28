@@ -94,13 +94,13 @@ export default function AddTransactionForm() {
                 ))}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label>Amount</Label>
+                  <Label className="text-xs">Amount</Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">₦</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">₦</span>
                     <Input
-                      className="pl-7 text-lg font-heading font-semibold"
+                      className="pl-7 font-heading font-semibold"
                       placeholder="0"
                       value={amount}
                       onChange={e => setAmount(formatInputAmount(e.target.value))}
@@ -110,7 +110,7 @@ export default function AddTransactionForm() {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label>Category</Label>
+                    <Label className="text-xs">Category</Label>
                     <button type="button" onClick={() => setShowNewCat(!showNewCat)} className="text-xs text-primary hover:underline">
                       + New
                     </button>
@@ -139,14 +139,14 @@ export default function AddTransactionForm() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label>Date</Label>
+                  <Label className="text-xs">Date</Label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}>
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {format(date, "PPP")}
+                      <Button variant="outline" className={cn("w-full justify-start text-left font-normal text-xs px-2.5", !date && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-1.5 h-3.5 w-3.5 flex-shrink-0" />
+                        <span className="truncate">{format(date, "MMM d, yyyy")}</span>
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -162,7 +162,7 @@ export default function AddTransactionForm() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Description (optional)</Label>
+                  <Label className="text-xs">Description (optional)</Label>
                   <Input
                     placeholder="What was this for?"
                     value={description}
