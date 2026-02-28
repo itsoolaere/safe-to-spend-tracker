@@ -1,49 +1,144 @@
 import { useBudget } from "@/context/BudgetContext";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowUpRight, ArrowDownRight, Wallet, TrendingUp } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowUpRight, ArrowDownRight, Wallet, AlertTriangle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
-const CHART_COLORS = [
-  "hsl(168, 55%, 38%)",
-  "hsl(38, 90%, 55%)",
+const EXPENSE_COLORS = [
   "hsl(4, 72%, 60%)",
+  "hsl(38, 90%, 55%)",
   "hsl(220, 60%, 55%)",
   "hsl(280, 55%, 55%)",
   "hsl(190, 70%, 45%)",
+  "hsl(340, 65%, 50%)",
 ];
+
+const INCOME_COLORS = [
+  "hsl(168, 55%, 38%)",
+  "hsl(145, 60%, 45%)",
+  "hsl(200, 65%, 50%)",
+  "hsl(80, 55%, 45%)",
+  "hsl(120, 50%, 40%)",
+  "hsl(50, 70%, 50%)",
+];
+
+function getMonthOptions() {
+  const months: { value: string; label: string }[] = [
+    { value: "all", label: "All Time" },
+  ];
+  const now = new Date();
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const label = d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    months.push({ value: val, label });
+  }
+  return months;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: any[];
+  label?: string;
+  transactions: { category: string; description: string; amount: number }[];
+}
+
+function CategoryTooltip({ active, payload, label, transactions }: CustomTooltipProps) {
+  if (!active || !payload?.length) return null;
+  const items = transactions
+    .filter(t => t.category === label)
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 5);
+
+  return (
+    <div className="bg-popover border rounded-xl p-3 shadow-lg text-sm min-w-[160px]">
+      <p className="font-semibold mb-1.5">{label}: {formatCurrency(payload[0].value)}</p>
+      {items.length > 0 && (
+        <div className="space-y-1 border-t pt-1.5">
+          {items.map((item, i) => (
+            <div key={i} className="flex justify-between text-xs text-muted-foreground">
+              <span className="truncate mr-2">{item.description || "No desc"}</span>
+              <span className="font-medium text-foreground">{formatCurrency(item.amount)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const { data } = useBudget();
   const { transactions } = data;
+  const [period, setPeriod] = useState("all");
+  const monthOptions = useMemo(getMonthOptions, []);
 
-  const totalIncome = useMemo(() => transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0), [transactions]);
-  const totalExpense = useMemo(() => transactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0), [transactions]);
+  const filtered = useMemo(() => {
+    if (period === "all") return transactions;
+    return transactions.filter(t => t.date.startsWith(period));
+  }, [transactions, period]);
+
+  const totalIncome = useMemo(() => filtered.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0), [filtered]);
+  const totalExpense = useMemo(() => filtered.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0), [filtered]);
   const balance = totalIncome - totalExpense;
+  const overBudget = totalExpense > totalIncome;
 
   const expenseByCategory = useMemo(() => {
     const map: Record<string, number> = {};
-    transactions.filter(t => t.type === "expense").forEach(t => {
+    filtered.filter(t => t.type === "expense").forEach(t => {
       map[t.category] = (map[t.category] || 0) + t.amount;
     });
-    return Object.entries(map)
-      .map(([name, amount]) => ({ name, amount }))
-      .sort((a, b) => b.amount - a.amount);
-  }, [transactions]);
+    return Object.entries(map).map(([name, amount]) => ({ name, amount })).sort((a, b) => b.amount - a.amount);
+  }, [filtered]);
 
-  const recent = transactions.slice(0, 5);
+  const incomeByCategory = useMemo(() => {
+    const map: Record<string, number> = {};
+    filtered.filter(t => t.type === "income").forEach(t => {
+      map[t.category] = (map[t.category] || 0) + t.amount;
+    });
+    return Object.entries(map).map(([name, amount]) => ({ name, amount })).sort((a, b) => b.amount - a.amount);
+  }, [filtered]);
+
+  const expenseTransactions = useMemo(() => filtered.filter(t => t.type === "expense"), [filtered]);
+  const incomeTransactions = useMemo(() => filtered.filter(t => t.type === "income"), [filtered]);
+
+  const recent = filtered.slice(0, 5);
 
   return (
     <div className="space-y-6 pb-20 sm:pb-0">
-      <div>
-        <h2 className="font-heading text-2xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground text-sm mt-1">Your financial overview</p>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <h2 className="font-heading text-2xl font-bold tracking-tight">Dashboard</h2>
+          <p className="text-muted-foreground text-sm mt-1">Your financial overview</p>
+        </div>
+        <Select value={period} onValueChange={setPeriod}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {monthOptions.map(m => (
+              <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
+
+      {/* Warning */}
+      {overBudget && (
+        <Alert variant="destructive" className="animate-fade-in">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Your expenses ({formatCurrency(totalExpense)}) exceed your income ({formatCurrency(totalIncome)}) by {formatCurrency(totalExpense - totalIncome)}.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="border-none shadow-sm bg-primary text-primary-foreground">
+        <Card className={`border-none shadow-sm ${overBudget ? "bg-expense text-expense-foreground" : "bg-primary text-primary-foreground"}`}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -84,21 +179,6 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Safe to spend indicator */}
-      <Card className="border-none shadow-sm">
-        <CardContent className="pt-6">
-          <div className="flex items-center gap-3">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            <div>
-              <p className="text-sm text-muted-foreground">Safe to Spend</p>
-              <p className={`text-3xl font-heading font-bold ${balance >= 0 ? "text-income" : "text-expense"}`}>
-                {formatCurrency(Math.max(0, balance))}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Expense chart */}
         <Card className="border-none shadow-sm">
@@ -113,13 +193,10 @@ export default function Dashboard() {
                 <BarChart data={expenseByCategory} layout="vertical" margin={{ left: 0, right: 16 }}>
                   <XAxis type="number" hide />
                   <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <Tooltip
-                    formatter={(value: number) => formatCurrency(value)}
-                    contentStyle={{ borderRadius: "0.75rem", border: "none", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
-                  />
+                  <Tooltip content={<CategoryTooltip transactions={expenseTransactions} />} cursor={false} />
                   <Bar dataKey="amount" radius={[0, 6, 6, 0]} barSize={20}>
                     {expenseByCategory.map((_, i) => (
-                      <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                      <Cell key={i} fill={EXPENSE_COLORS[i % EXPENSE_COLORS.length]} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -128,35 +205,60 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Recent transactions */}
+        {/* Income chart */}
         <Card className="border-none shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base font-heading">Recent Transactions</CardTitle>
+            <CardTitle className="text-base font-heading">Income by Category</CardTitle>
           </CardHeader>
           <CardContent>
-            {recent.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-8">No transactions yet</p>
+            {incomeByCategory.length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-8">No income yet</p>
             ) : (
-              <div className="space-y-3">
-                {recent.map(t => (
-                  <div key={t.id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-2 h-2 rounded-full ${t.type === "income" ? "bg-income" : "bg-expense"}`} />
-                      <div>
-                        <p className="text-sm font-medium">{t.description || t.category}</p>
-                        <p className="text-xs text-muted-foreground">{formatDate(t.date)}</p>
-                      </div>
-                    </div>
-                    <span className={`text-sm font-semibold ${t.type === "income" ? "text-income" : "text-expense"}`}>
-                      {t.type === "income" ? "+" : "-"}{formatCurrency(t.amount)}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={incomeByCategory} layout="vertical" margin={{ left: 0, right: 16 }}>
+                  <XAxis type="number" hide />
+                  <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<CategoryTooltip transactions={incomeTransactions} />} cursor={false} />
+                  <Bar dataKey="amount" radius={[0, 6, 6, 0]} barSize={20}>
+                    {incomeByCategory.map((_, i) => (
+                      <Cell key={i} fill={INCOME_COLORS[i % INCOME_COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Recent transactions */}
+      <Card className="border-none shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-base font-heading">Recent Transactions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {recent.length === 0 ? (
+            <p className="text-muted-foreground text-sm text-center py-8">No transactions yet</p>
+          ) : (
+            <div className="space-y-3">
+              {recent.map(t => (
+                <div key={t.id} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full ${t.type === "income" ? "bg-income" : "bg-expense"}`} />
+                    <div>
+                      <p className="text-sm font-medium">{t.description || t.category}</p>
+                      <p className="text-xs text-muted-foreground">{formatDate(t.date)}</p>
+                    </div>
+                  </div>
+                  <span className={`text-sm font-semibold ${t.type === "income" ? "text-income" : "text-expense"}`}>
+                    {t.type === "income" ? "+" : "-"}{formatCurrency(t.amount)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

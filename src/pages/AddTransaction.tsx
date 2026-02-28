@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useBudget } from "@/context/BudgetContext";
 import { TransactionType } from "@/lib/types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -87,7 +87,7 @@ export default function AddTransaction() {
             <div className="space-y-2">
               <Label>Amount</Label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">₦</span>
                 <Input
                   className="pl-7 text-lg font-heading font-semibold"
                   placeholder="0"
