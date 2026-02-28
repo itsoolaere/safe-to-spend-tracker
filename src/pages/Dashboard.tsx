@@ -11,21 +11,21 @@ import { Link } from "react-router-dom";
 import AddTransactionForm from "@/components/AddTransactionForm";
 
 const EXPENSE_COLORS = [
-  "hsl(4, 72%, 60%)",
-  "hsl(38, 90%, 55%)",
-  "hsl(220, 60%, 55%)",
-  "hsl(280, 55%, 55%)",
-  "hsl(190, 70%, 45%)",
-  "hsl(340, 65%, 50%)",
+  "hsl(4, 40%, 72%)",
+  "hsl(20, 35%, 70%)",
+  "hsl(340, 30%, 72%)",
+  "hsl(0, 25%, 68%)",
+  "hsl(15, 30%, 74%)",
+  "hsl(350, 28%, 70%)",
 ];
 
 const INCOME_COLORS = [
-  "hsl(168, 55%, 38%)",
-  "hsl(145, 60%, 45%)",
-  "hsl(200, 65%, 50%)",
-  "hsl(80, 55%, 45%)",
-  "hsl(120, 50%, 40%)",
-  "hsl(50, 70%, 50%)",
+  "hsl(168, 30%, 65%)",
+  "hsl(145, 28%, 68%)",
+  "hsl(160, 25%, 70%)",
+  "hsl(180, 22%, 68%)",
+  "hsl(150, 25%, 72%)",
+  "hsl(170, 20%, 66%)",
 ];
 
 function getMonthOptions() {
@@ -248,7 +248,7 @@ export default function Dashboard() {
           <AddTransactionForm />
 
           {/* Recent transactions */}
-          <Card className="border-none shadow-sm">
+          <Card className="border-none shadow-none bg-card/40 backdrop-blur-sm">
             <CardHeader className="flex-row items-center justify-between space-y-0">
               <CardTitle className="text-base font-heading">Recent Transactions</CardTitle>
               <Link to="/history" className="text-xs text-primary hover:underline font-medium">
