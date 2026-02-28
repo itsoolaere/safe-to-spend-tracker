@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useBudget } from "@/context/BudgetContext";
+import { formatInputAmount } from "@/lib/format";
 import { TransactionType } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -57,12 +58,6 @@ export default function AddTransactionForm() {
     toast.success("Category added");
   };
 
-  const formatAmount = (val: string) => {
-    const clean = val.replace(/[^0-9.]/g, "");
-    const parts = clean.split(".");
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    return parts.length > 1 ? `${parts[0]}.${parts[1].slice(0, 2)}` : parts[0];
-  };
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -108,7 +103,7 @@ export default function AddTransactionForm() {
                       className="pl-7 text-lg font-heading font-semibold"
                       placeholder="0"
                       value={amount}
-                      onChange={e => setAmount(formatAmount(e.target.value))}
+                      onChange={e => setAmount(formatInputAmount(e.target.value))}
                     />
                   </div>
                 </div>

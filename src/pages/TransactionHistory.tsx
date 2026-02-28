@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useBudget } from "@/context/BudgetContext";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { formatCurrency, formatDate, formatInputAmount, getMonthOptions } from "@/lib/format";
 import { Transaction } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,20 +11,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
-function getMonthOptions() {
-  const months: { value: string; label: string }[] = [
-    { value: "all", label: "All Time" },
-  ];
-  const year = new Date().getFullYear();
-  for (let m = 0; m < 12; m++) {
-    const d = new Date(year, m, 1);
-    const val = `${year}-${String(m + 1).padStart(2, "0")}`;
-    const label = d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-    months.push({ value: val, label });
-  }
-  return months;
-}
-
 export default function TransactionHistory() {
   const { data, deleteTransaction, updateTransaction, period, setPeriod } = useBudget();
   const { transactions } = data;
@@ -34,7 +20,7 @@ export default function TransactionHistory() {
   const [editDescription, setEditDescription] = useState("");
   const [editCategory, setEditCategory] = useState("");
 
-  const monthOptions = useMemo(getMonthOptions, []);
+  const monthOptions = useMemo(() => getMonthOptions(true), []);
 
   const filtered = useMemo(() => {
     let result = transactions;
@@ -70,13 +56,6 @@ export default function TransactionHistory() {
     });
     toast.success("Transaction updated");
     setEditing(null);
-  };
-
-  const formatInputAmount = (val: string) => {
-    const clean = val.replace(/[^0-9.]/g, "");
-    const parts = clean.split(".");
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    return parts.length > 1 ? `${parts[0]}.${parts[1].slice(0, 2)}` : parts[0];
   };
 
   return (
@@ -144,29 +123,17 @@ export default function TransactionHistory() {
                   <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${t.type === "income" ? "bg-income" : "bg-expense"}`} />
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{t.description || t.category}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {t.category} · {formatDate(t.date)}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{t.category} · {formatDate(t.date)}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">
                   <span className={`text-sm font-semibold ${t.type === "income" ? "text-income" : "text-expense"}`}>
                     {t.type === "income" ? "+" : "-"}{formatCurrency(t.amount)}
                   </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                    onClick={(e) => { e.stopPropagation(); openEdit(t); }}
-                  >
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={(e) => { e.stopPropagation(); openEdit(t); }}>
                     <Pencil className="w-4 h-4" />
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-expense"
-                    onClick={(e) => { e.stopPropagation(); handleDelete(t.id); }}
-                  >
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-expense" onClick={(e) => { e.stopPropagation(); handleDelete(t.id); }}>
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
@@ -188,19 +155,13 @@ export default function TransactionHistory() {
                 <Label>Amount</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">₦</span>
-                  <Input
-                    className="pl-7 text-lg font-heading font-semibold"
-                    value={editAmount}
-                    onChange={e => setEditAmount(formatInputAmount(e.target.value))}
-                  />
+                  <Input className="pl-7 text-lg font-heading font-semibold" value={editAmount} onChange={e => setEditAmount(formatInputAmount(e.target.value))} />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label>Category</Label>
                 <Select value={editCategory} onValueChange={setEditCategory}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {data.categories[editing.type].map(c => (
                       <SelectItem key={c} value={c}>{c}</SelectItem>
@@ -210,11 +171,7 @@ export default function TransactionHistory() {
               </div>
               <div className="space-y-2">
                 <Label>Description</Label>
-                <Input
-                  value={editDescription}
-                  onChange={e => setEditDescription(e.target.value)}
-                  placeholder="What was this for?"
-                />
+                <Input value={editDescription} onChange={e => setEditDescription(e.target.value)} placeholder="What was this for?" />
               </div>
             </div>
           )}
