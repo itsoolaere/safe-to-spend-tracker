@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowUpRight, ArrowDownRight, Wallet, AlertTriangle } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Wallet, AlertTriangle, PlusCircle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -117,8 +117,8 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 pb-20 sm:pb-0">
-      {/* Date filter dropdown */}
-      <div className="flex items-center gap-3">
+      {/* Date filter + Budget button */}
+      <div className="flex items-center justify-between gap-3">
         <Select value={period} onValueChange={setPeriod}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select month" />
@@ -129,6 +129,12 @@ export default function Dashboard() {
             ))}
           </SelectContent>
         </Select>
+        <Button variant="outline" size="sm" asChild>
+          <Link to="/budget">
+            <PlusCircle className="w-4 h-4 mr-1" />
+            Budget
+          </Link>
+        </Button>
       </div>
 
       {/* Warning */}
