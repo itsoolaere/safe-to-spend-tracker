@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useBudget } from "@/context/BudgetContext";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { TransactionType, Transaction } from "@/lib/types";
+import { Transaction } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,7 @@ export default function TransactionHistory() {
   const { data, deleteTransaction, updateTransaction } = useBudget();
   const { transactions } = data;
   const [period, setPeriod] = useState("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense">("all");
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [editAmount, setEditAmount] = useState("");
   const [editDescription, setEditDescription] = useState("");
@@ -37,9 +38,15 @@ export default function TransactionHistory() {
   const monthOptions = useMemo(getMonthOptions, []);
 
   const filtered = useMemo(() => {
-    if (period === "all") return transactions;
-    return transactions.filter(t => t.date.startsWith(period));
-  }, [transactions, period]);
+    let result = transactions;
+    if (period !== "all") result = result.filter(t => t.date.startsWith(period));
+    if (typeFilter !== "all") result = result.filter(t => t.type === typeFilter);
+    return result;
+  }, [transactions, period, typeFilter]);
+
+  const totalIncome = useMemo(() => filtered.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0), [filtered]);
+  const totalExpense = useMemo(() => filtered.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0), [filtered]);
+  const netTotal = totalIncome - totalExpense;
 
   const handleDelete = (id: string) => {
     deleteTransaction(id);
@@ -90,6 +97,32 @@ export default function TransactionHistory() {
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Type filter + Totals */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex gap-1">
+          {(["all", "income", "expense"] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => setTypeFilter(t)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                typeFilter === t
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t === "all" ? "All" : t === "income" ? "Income" : "Expenses"}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-4 text-sm">
+          <span className="text-income font-medium">+{formatCurrency(totalIncome)}</span>
+          <span className="text-expense font-medium">-{formatCurrency(totalExpense)}</span>
+          <span className={`font-heading font-bold ${netTotal >= 0 ? "text-income" : "text-expense"}`}>
+            Net: {formatCurrency(netTotal)}
+          </span>
+        </div>
       </div>
 
       {filtered.length === 0 ? (

@@ -14,7 +14,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-30">
         <div className="container flex items-center justify-between h-16 px-4 max-w-6xl mx-auto">
           <h1 className="font-heading text-xl font-bold tracking-tight text-foreground">
-            <span className="text-primary italic">Finance</span> Journal
+            <span className="text-primary italic">Safe</span> to Spend
           </h1>
           <nav className="hidden sm:flex gap-1">
             {links.map(l => (
