@@ -6,7 +6,7 @@ function getDefault(): AppData {
   return {
     transactions: [],
     categories: { ...DEFAULT_CATEGORIES },
-    budgets: DEFAULT_CATEGORIES.expense.filter(c => c !== "Other").map(c => ({ category: c, limit: 0 })),
+    budgets: [],
   };
 }
 

@@ -178,24 +178,29 @@ export default function Dashboard() {
 
           {/* Mini Budget Widget */}
           {(() => {
-            const activeBudgets = data.budgets.filter(b => b.limit > 0);
-            if (activeBudgets.length === 0) return null;
+            const periodBudgets = data.budgets.filter(b => b.month === period && b.limit > 0);
+            if (periodBudgets.length === 0) return null;
+
+            const expBudgets = periodBudgets.filter(b => b.type === "expense");
+            const incBudgets = periodBudgets.filter(b => b.type === "income");
 
             const monthlyExpenses: Record<string, number> = {};
             filtered.filter(t => t.type === "expense").forEach(t => {
               monthlyExpenses[t.category] = (monthlyExpenses[t.category] || 0) + t.amount;
             });
+            const monthlyIncome: Record<string, number> = {};
+            filtered.filter(t => t.type === "income").forEach(t => {
+              monthlyIncome[t.category] = (monthlyIncome[t.category] || 0) + t.amount;
+            });
 
-            const totalBudget = activeBudgets.reduce((s, b) => s + b.limit, 0);
-            const totalSpentBudget = activeBudgets.reduce((s, b) => s + (monthlyExpenses[b.category] || 0), 0);
-            const overallPct = totalBudget > 0 ? Math.min((totalSpentBudget / totalBudget) * 100, 100) : 0;
-            const isOver = totalSpentBudget > totalBudget;
+            const totalExpBudget = expBudgets.reduce((s, b) => s + b.limit, 0);
+            const totalExpSpent = expBudgets.reduce((s, b) => s + (monthlyExpenses[b.category] || 0), 0);
+            const expPct = totalExpBudget > 0 ? Math.min((totalExpSpent / totalExpBudget) * 100, 100) : 0;
+            const expOver = totalExpSpent > totalExpBudget;
 
-            // Top 3 most-used budget categories
-            const top = activeBudgets
-              .map(b => ({ ...b, spent: monthlyExpenses[b.category] || 0, pct: b.limit > 0 ? Math.min(((monthlyExpenses[b.category] || 0) / b.limit) * 100, 100) : 0 }))
-              .sort((a, b) => b.pct - a.pct)
-              .slice(0, 3);
+            const totalIncBudget = incBudgets.reduce((s, b) => s + b.limit, 0);
+            const totalIncActual = incBudgets.reduce((s, b) => s + (monthlyIncome[b.category] || 0), 0);
+            const incPct = totalIncBudget > 0 ? Math.min((totalIncActual / totalIncBudget) * 100, 100) : 0;
 
             return (
               <Card className="border-none shadow-sm">
@@ -209,37 +214,34 @@ export default function Dashboard() {
                   </Link>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Overall progress */}
-                  <div>
-                    <div className="flex justify-between text-xs mb-1.5">
-                      <span className="text-muted-foreground">Overall</span>
-                      <span className={`font-semibold ${isOver ? "text-expense" : ""}`}>
-                        {formatCurrency(totalSpentBudget)} / {formatCurrency(totalBudget)}
-                      </span>
-                    </div>
-                    <Progress
-                      value={overallPct}
-                      className={`h-2.5 ${isOver ? "[&>div]:bg-expense" : "[&>div]:bg-primary"}`}
-                    />
-                  </div>
-
-                  {/* Top categories */}
-                  <div className="space-y-2.5">
-                    {top.map(b => (
-                      <div key={b.category}>
-                        <div className="flex justify-between text-xs mb-1">
-                          <span className="text-muted-foreground">{b.category}</span>
-                          <span className={`font-medium ${b.spent > b.limit ? "text-expense" : ""}`}>
-                            {Math.round(b.pct)}%
-                          </span>
-                        </div>
-                        <Progress
-                          value={b.pct}
-                          className={`h-1.5 ${b.spent > b.limit ? "[&>div]:bg-expense" : "[&>div]:bg-primary/60"}`}
-                        />
+                  {expBudgets.length > 0 && (
+                    <div>
+                      <div className="flex justify-between text-xs mb-1.5">
+                        <span className="text-muted-foreground">Expenses</span>
+                        <span className={`font-semibold ${expOver ? "text-expense" : ""}`}>
+                          {formatCurrency(totalExpSpent)} / {formatCurrency(totalExpBudget)}
+                        </span>
                       </div>
-                    ))}
-                  </div>
+                      <Progress
+                        value={expPct}
+                        className={`h-2 ${expOver ? "[&>div]:bg-expense" : "[&>div]:bg-primary"}`}
+                      />
+                    </div>
+                  )}
+                  {incBudgets.length > 0 && (
+                    <div>
+                      <div className="flex justify-between text-xs mb-1.5">
+                        <span className="text-muted-foreground">Income</span>
+                        <span className="font-semibold">
+                          {formatCurrency(totalIncActual)} / {formatCurrency(totalIncBudget)}
+                        </span>
+                      </div>
+                      <Progress
+                        value={incPct}
+                        className="h-2 [&>div]:bg-income"
+                      />
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );

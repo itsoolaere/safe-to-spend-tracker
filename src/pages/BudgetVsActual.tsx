@@ -31,6 +31,118 @@ const formatInputAmount = (val: string) => {
   return parts.length > 1 ? `${parts[0]}.${parts[1].slice(0, 2)}` : parts[0];
 };
 
+function BudgetTable({
+  type,
+  label,
+  budgets,
+  actuals,
+  editLimits,
+  setEditLimits,
+  onDelete,
+}: {
+  type: "income" | "expense";
+  label: string;
+  budgets: { category: string; limit: number; type: "income" | "expense"; month: string }[];
+  actuals: Record<string, number>;
+  editLimits: Record<string, string>;
+  setEditLimits: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  onDelete: (category: string) => void;
+}) {
+  const active = budgets.filter(b => b.limit > 0);
+  const total = active.reduce((s, b) => s + b.limit, 0);
+  const totalActual = active.reduce((s, b) => s + (actuals[b.category] || 0), 0);
+
+  if (active.length === 0) return null;
+
+  const isExpense = type === "expense";
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="font-heading font-semibold text-sm">{label}</h3>
+        <span className={`text-xs font-medium ${isExpense && totalActual > total ? "text-expense" : "text-muted-foreground"}`}>
+          {formatCurrency(totalActual)} / {formatCurrency(total)}
+        </span>
+      </div>
+      <Card className="border-none shadow-sm overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-[160px]">Category</TableHead>
+              <TableHead>Progress</TableHead>
+              <TableHead className="text-right w-[110px]">Actual</TableHead>
+              <TableHead className="text-right w-[110px]">Budget</TableHead>
+              <TableHead className="text-right w-[50px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {active.map(budget => {
+              const actual = actuals[budget.category] || 0;
+              const pct = budget.limit > 0 ? Math.min((actual / budget.limit) * 100, 100) : 0;
+              const over = isExpense && actual > budget.limit;
+              const editKey = `${type}-${budget.category}`;
+              const isEditing = editKey in editLimits;
+
+              return (
+                <TableRow key={budget.category}>
+                  <TableCell className="font-medium text-sm">{budget.category}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Progress
+                        value={pct}
+                        className={`h-2 flex-1 ${over ? "[&>div]:bg-expense" : isExpense ? "[&>div]:bg-primary" : "[&>div]:bg-income"}`}
+                      />
+                      <span className={`text-xs font-medium w-10 text-right ${over ? "text-expense" : "text-muted-foreground"}`}>
+                        {Math.round(pct)}%
+                      </span>
+                    </div>
+                    {over && (
+                      <p className="text-[11px] text-expense mt-0.5 font-medium">
+                        Over by {formatCurrency(actual - budget.limit)}
+                      </p>
+                    )}
+                  </TableCell>
+                  <TableCell className={`text-right text-sm font-semibold ${over ? "text-expense" : ""}`}>
+                    {formatCurrency(actual)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {isEditing ? (
+                      <Input
+                        className="h-7 text-xs text-right w-24 ml-auto"
+                        value={editLimits[editKey]}
+                        onChange={e => setEditLimits(p => ({ ...p, [editKey]: formatInputAmount(e.target.value) }))}
+                        autoFocus
+                      />
+                    ) : (
+                      <button
+                        className="text-sm font-medium inline-flex items-center gap-1 hover:text-primary transition-colors group"
+                        onClick={() => setEditLimits(p => ({ ...p, [editKey]: String(budget.limit) }))}
+                      >
+                        {formatCurrency(budget.limit)}
+                        <Pencil className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-expense"
+                      onClick={() => onDelete(budget.category)}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </Card>
+    </div>
+  );
+}
+
 export default function BudgetVsActual() {
   const { data, updateBudgets, period, setPeriod } = useBudget();
   const monthOptions = useMemo(getMonthOptions, []);
@@ -40,6 +152,11 @@ export default function BudgetVsActual() {
   const [newAmount, setNewAmount] = useState("");
   const [editLimits, setEditLimits] = useState<Record<string, string>>({});
 
+  // Filter budgets for current period
+  const periodBudgets = useMemo(() => data.budgets.filter(b => b.month === period), [data.budgets, period]);
+  const expenseBudgets = periodBudgets.filter(b => b.type === "expense");
+  const incomeBudgets = periodBudgets.filter(b => b.type === "income");
+
   const monthlyExpenses = useMemo(() => {
     const map: Record<string, number> = {};
     data.transactions
@@ -48,22 +165,30 @@ export default function BudgetVsActual() {
     return map;
   }, [data.transactions, period]);
 
-  // Only show budgets with limit > 0
-  const activeBudgets = data.budgets.filter(b => b.limit > 0);
-  const budgetMap = Object.fromEntries(data.budgets.map(b => [b.category, b.limit]));
+  const monthlyIncome = useMemo(() => {
+    const map: Record<string, number> = {};
+    data.transactions
+      .filter(t => t.type === "income" && t.date.startsWith(period))
+      .forEach(t => { map[t.category] = (map[t.category] || 0) + t.amount; });
+    return map;
+  }, [data.transactions, period]);
 
   const hasEdits = Object.keys(editLimits).length > 0;
-  const totalBudget = activeBudgets.reduce((s, b) => s + b.limit, 0);
-  const totalSpent = activeBudgets.reduce((s, b) => s + (monthlyExpenses[b.category] || 0), 0);
+
+  const totalExpenseBudget = expenseBudgets.filter(b => b.limit > 0).reduce((s, b) => s + b.limit, 0);
+  const totalExpenseSpent = expenseBudgets.filter(b => b.limit > 0).reduce((s, b) => s + (monthlyExpenses[b.category] || 0), 0);
+  const totalIncomeBudget = incomeBudgets.filter(b => b.limit > 0).reduce((s, b) => s + b.limit, 0);
+  const totalIncomeActual = incomeBudgets.filter(b => b.limit > 0).reduce((s, b) => s + (monthlyIncome[b.category] || 0), 0);
 
   const handleSave = () => {
-    const newBudgets = data.budgets.map(b => ({
-      category: b.category,
-      limit: editLimits[b.category] !== undefined
-        ? (parseFloat(editLimits[b.category].replace(/,/g, "")) || 0)
-        : b.limit,
-    }));
-    updateBudgets(newBudgets);
+    const updatedBudgets = data.budgets.map(b => {
+      const editKey = `${b.type}-${b.category}`;
+      if (b.month === period && editLimits[editKey] !== undefined) {
+        return { ...b, limit: parseFloat(editLimits[editKey].replace(/,/g, "")) || 0 };
+      }
+      return b;
+    });
+    updateBudgets(updatedBudgets);
     setEditLimits({});
     toast.success("Budgets updated");
   };
@@ -73,17 +198,25 @@ export default function BudgetVsActual() {
     const amount = parseFloat(newAmount.replace(/,/g, ""));
     if (!amount || amount <= 0) { toast.error("Enter a valid amount"); return; }
 
-    const existing = data.budgets.filter(b => b.category !== newCategory);
-    updateBudgets([...existing, { category: newCategory, limit: amount }]);
+    // Remove existing budget for same category/type/month, then add new
+    const filtered = data.budgets.filter(b => !(b.category === newCategory && b.type === newType && b.month === period));
+    updateBudgets([...filtered, { category: newCategory, limit: amount, type: newType, month: period }]);
     setNewCategory("");
     setNewAmount("");
     toast.success("Budget entry added");
   };
 
-  const handleDeleteBudget = (category: string) => {
-    updateBudgets(data.budgets.map(b => b.category === category ? { ...b, limit: 0 } : b));
+  const handleDeleteExpense = (category: string) => {
+    updateBudgets(data.budgets.filter(b => !(b.category === category && b.type === "expense" && b.month === period)));
     toast.success("Budget removed");
   };
+
+  const handleDeleteIncome = (category: string) => {
+    updateBudgets(data.budgets.filter(b => !(b.category === category && b.type === "income" && b.month === period)));
+    toast.success("Budget removed");
+  };
+
+  const hasAnyBudgets = periodBudgets.some(b => b.limit > 0);
 
   return (
     <div className="space-y-6 pb-20 sm:pb-0">
@@ -164,114 +297,66 @@ export default function BudgetVsActual() {
         </CardContent>
       </Card>
 
-      {/* Summary row */}
-      <div className="grid grid-cols-3 gap-4">
+      {/* Summary cards - separate income & expense */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <Card className="border-none shadow-sm">
           <CardContent className="pt-5 pb-4 text-center">
-            <p className="text-xs text-muted-foreground">Total Budget</p>
-            <p className="text-xl font-heading font-bold mt-1">{formatCurrency(totalBudget)}</p>
+            <p className="text-xs text-muted-foreground">Expense Budget</p>
+            <p className="text-lg font-heading font-bold mt-1">{formatCurrency(totalExpenseBudget)}</p>
           </CardContent>
         </Card>
         <Card className="border-none shadow-sm">
           <CardContent className="pt-5 pb-4 text-center">
-            <p className="text-xs text-muted-foreground">Total Spent</p>
-            <p className={`text-xl font-heading font-bold mt-1 ${totalSpent > totalBudget ? "text-expense" : "text-foreground"}`}>
-              {formatCurrency(totalSpent)}
+            <p className="text-xs text-muted-foreground">Expense Spent</p>
+            <p className={`text-lg font-heading font-bold mt-1 ${totalExpenseSpent > totalExpenseBudget && totalExpenseBudget > 0 ? "text-expense" : ""}`}>
+              {formatCurrency(totalExpenseSpent)}
             </p>
           </CardContent>
         </Card>
         <Card className="border-none shadow-sm">
           <CardContent className="pt-5 pb-4 text-center">
-            <p className="text-xs text-muted-foreground">Remaining</p>
-            <p className={`text-xl font-heading font-bold mt-1 ${totalBudget - totalSpent < 0 ? "text-expense" : "text-income"}`}>
-              {formatCurrency(totalBudget - totalSpent)}
+            <p className="text-xs text-muted-foreground">Income Budget</p>
+            <p className="text-lg font-heading font-bold mt-1">{formatCurrency(totalIncomeBudget)}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-none shadow-sm">
+          <CardContent className="pt-5 pb-4 text-center">
+            <p className="text-xs text-muted-foreground">Income Actual</p>
+            <p className={`text-lg font-heading font-bold mt-1 ${totalIncomeActual >= totalIncomeBudget && totalIncomeBudget > 0 ? "text-income" : ""}`}>
+              {formatCurrency(totalIncomeActual)}
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Budget table */}
-      {activeBudgets.length === 0 ? (
+      {/* Budget tables */}
+      {!hasAnyBudgets ? (
         <Card className="border-none shadow-sm">
           <CardContent className="py-12 text-center text-muted-foreground text-sm">
-            No active budgets. Add one above to get started.
+            No budgets set for this month. Add one above to get started.
           </CardContent>
         </Card>
       ) : (
-        <Card className="border-none shadow-sm overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[180px]">Category</TableHead>
-                <TableHead>Progress</TableHead>
-                <TableHead className="text-right w-[120px]">Spent</TableHead>
-                <TableHead className="text-right w-[120px]">Budget</TableHead>
-                <TableHead className="text-right w-[60px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {activeBudgets.map(budget => {
-                const spent = monthlyExpenses[budget.category] || 0;
-                const pct = budget.limit > 0 ? Math.min((spent / budget.limit) * 100, 100) : 0;
-                const over = spent > budget.limit;
-                const isEditing = budget.category in editLimits;
-
-                return (
-                  <TableRow key={budget.category}>
-                    <TableCell className="font-medium text-sm">{budget.category}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Progress
-                          value={pct}
-                          className={`h-2 flex-1 ${over ? "[&>div]:bg-expense" : "[&>div]:bg-primary"}`}
-                        />
-                        <span className={`text-xs font-medium w-10 text-right ${over ? "text-expense" : "text-muted-foreground"}`}>
-                          {Math.round(pct)}%
-                        </span>
-                      </div>
-                      {over && (
-                        <p className="text-[11px] text-expense mt-0.5 font-medium">
-                          Over by {formatCurrency(spent - budget.limit)}
-                        </p>
-                      )}
-                    </TableCell>
-                    <TableCell className={`text-right text-sm font-semibold ${over ? "text-expense" : ""}`}>
-                      {formatCurrency(spent)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {isEditing ? (
-                        <Input
-                          className="h-7 text-xs text-right w-24 ml-auto"
-                          value={editLimits[budget.category]}
-                          onChange={e => setEditLimits(p => ({ ...p, [budget.category]: formatInputAmount(e.target.value) }))}
-                          autoFocus
-                        />
-                      ) : (
-                        <button
-                          className="text-sm font-medium inline-flex items-center gap-1 hover:text-primary transition-colors group"
-                          onClick={() => setEditLimits(p => ({ ...p, [budget.category]: String(budget.limit) }))}
-                        >
-                          {formatCurrency(budget.limit)}
-                          <Pencil className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </button>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-muted-foreground hover:text-expense"
-                        onClick={() => handleDeleteBudget(budget.category)}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </Card>
+        <div className="space-y-6">
+          <BudgetTable
+            type="expense"
+            label="Expense Budgets"
+            budgets={expenseBudgets}
+            actuals={monthlyExpenses}
+            editLimits={editLimits}
+            setEditLimits={setEditLimits}
+            onDelete={handleDeleteExpense}
+          />
+          <BudgetTable
+            type="income"
+            label="Income Budgets"
+            budgets={incomeBudgets}
+            actuals={monthlyIncome}
+            editLimits={editLimits}
+            setEditLimits={setEditLimits}
+            onDelete={handleDeleteIncome}
+          />
+        </div>
       )}
     </div>
   );
