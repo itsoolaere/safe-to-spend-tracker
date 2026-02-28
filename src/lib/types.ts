@@ -12,6 +12,8 @@ export interface Transaction {
 export interface Budget {
   category: string;
   limit: number;
+  type: "income" | "expense";
+  month: string; // e.g. "2026-02"
 }
 
 export interface AppData {
