@@ -3,6 +3,7 @@ import { formatCurrency, formatDate } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowUpRight, ArrowDownRight, Wallet, AlertTriangle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { useMemo, useState } from "react";
@@ -116,21 +117,18 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 pb-20 sm:pb-0">
-      {/* Month filter - horizontal scroll */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1">
-        {monthOptions.map(m => (
-          <button
-            key={m.value}
-            onClick={() => setPeriod(m.value)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
-              period === m.value
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {m.label}
-          </button>
-        ))}
+      {/* Date filter dropdown */}
+      <div className="flex items-center gap-3">
+        <Select value={period} onValueChange={setPeriod}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select month" />
+          </SelectTrigger>
+          <SelectContent>
+            {monthOptions.map(m => (
+              <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Warning */}
@@ -143,152 +141,162 @@ export default function Dashboard() {
         </Alert>
       )}
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className={`border-none shadow-sm ${overBudget ? "bg-expense text-expense-foreground" : "bg-primary text-primary-foreground"}`}>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm opacity-80">Balance</p>
-                <p className="text-2xl font-heading font-bold mt-1">{formatCurrency(balance)}</p>
-              </div>
-              <Wallet className="w-8 h-8 opacity-60" />
-            </div>
-          </CardContent>
-        </Card>
+      {/* Two-column layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* LEFT COLUMN - Summary + Charts */}
+        <div className="lg:col-span-3 space-y-6">
+          {/* Summary cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card className={`border-none shadow-sm ${overBudget ? "bg-expense text-expense-foreground" : "bg-primary text-primary-foreground"}`}>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm opacity-80">Balance</p>
+                    <p className="text-2xl font-heading font-bold mt-1">{formatCurrency(balance)}</p>
+                  </div>
+                  <Wallet className="w-8 h-8 opacity-60" />
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card className="border-none shadow-sm">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Income</p>
-                <p className="text-2xl font-heading font-bold text-income mt-1">{formatCurrency(totalIncome)}</p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-income/10 flex items-center justify-center">
-                <ArrowUpRight className="w-5 h-5 text-income" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            <Card className="border-none shadow-sm">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Income</p>
+                    <p className="text-2xl font-heading font-bold text-income mt-1">{formatCurrency(totalIncome)}</p>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-income/10 flex items-center justify-center">
+                    <ArrowUpRight className="w-5 h-5 text-income" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        <Card className="border-none shadow-sm">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Expenses</p>
-                <p className="text-2xl font-heading font-bold text-expense mt-1">{formatCurrency(totalExpense)}</p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-expense/10 flex items-center justify-center">
-                <ArrowDownRight className="w-5 h-5 text-expense" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Add Transaction Form */}
-      <AddTransactionForm />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Expense chart */}
-        <Card className="border-none shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base font-heading">Expenses by Category</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {expenseByCategory.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-8">No expenses yet</p>
-            ) : (
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={expenseByCategory} layout="vertical" margin={{ left: 0, right: 16 }}>
-                  <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <Tooltip content={<CategoryTooltip transactions={expenseTransactions} />} cursor={false} />
-                  <Bar dataKey="amount" radius={[0, 6, 6, 0]} barSize={20}>
-                    {expenseByCategory.map((_, i) => (
-                      <Cell key={i} fill={EXPENSE_COLORS[i % EXPENSE_COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Income chart */}
-        <Card className="border-none shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-base font-heading">Income by Category</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {incomeByCategory.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-8">No income yet</p>
-            ) : (
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={incomeByCategory} layout="vertical" margin={{ left: 0, right: 16 }}>
-                  <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <Tooltip content={<CategoryTooltip transactions={incomeTransactions} />} cursor={false} />
-                  <Bar dataKey="amount" radius={[0, 6, 6, 0]} barSize={20}>
-                    {incomeByCategory.map((_, i) => (
-                      <Cell key={i} fill={INCOME_COLORS[i % INCOME_COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent transactions */}
-      <Card className="border-none shadow-sm">
-        <CardHeader className="flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-base font-heading">Recent Transactions</CardTitle>
-          <Link to="/history" className="text-xs text-primary hover:underline font-medium">
-            See all transactions →
-          </Link>
-        </CardHeader>
-        <CardContent>
-          {/* Type filter */}
-          <div className="flex gap-1 mb-4">
-            {(["all", "income", "expense"] as const).map(t => (
-              <button
-                key={t}
-                onClick={() => setTypeFilter(t)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                  typeFilter === t
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {t === "all" ? "All" : t === "income" ? "Income" : "Expenses"}
-              </button>
-            ))}
+            <Card className="border-none shadow-sm">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Expenses</p>
+                    <p className="text-2xl font-heading font-bold text-expense mt-1">{formatCurrency(totalExpense)}</p>
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-expense/10 flex items-center justify-center">
+                    <ArrowDownRight className="w-5 h-5 text-expense" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          {recent.length === 0 ? (
-            <p className="text-muted-foreground text-sm text-center py-8">No transactions yet</p>
-          ) : (
-            <div className="space-y-3">
-              {recent.map(t => (
-                <div key={t.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${t.type === "income" ? "bg-income" : "bg-expense"}`} />
-                    <div>
-                      <p className="text-sm font-medium">{t.description || t.category}</p>
-                      <p className="text-xs text-muted-foreground">{formatDate(t.date)}</p>
+          {/* Charts */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Expense chart */}
+            <Card className="border-none shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base font-heading">Expenses by Category</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {expenseByCategory.length === 0 ? (
+                  <p className="text-muted-foreground text-sm text-center py-8">No expenses yet</p>
+                ) : (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={expenseByCategory} layout="vertical" margin={{ left: 0, right: 16 }}>
+                      <XAxis type="number" hide />
+                      <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<CategoryTooltip transactions={expenseTransactions} />} cursor={false} />
+                      <Bar dataKey="amount" radius={[0, 6, 6, 0]} barSize={20}>
+                        {expenseByCategory.map((_, i) => (
+                          <Cell key={i} fill={EXPENSE_COLORS[i % EXPENSE_COLORS.length]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Income chart */}
+            <Card className="border-none shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base font-heading">Income by Category</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {incomeByCategory.length === 0 ? (
+                  <p className="text-muted-foreground text-sm text-center py-8">No income yet</p>
+                ) : (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={incomeByCategory} layout="vertical" margin={{ left: 0, right: 16 }}>
+                      <XAxis type="number" hide />
+                      <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<CategoryTooltip transactions={incomeTransactions} />} cursor={false} />
+                      <Bar dataKey="amount" radius={[0, 6, 6, 0]} barSize={20}>
+                        {incomeByCategory.map((_, i) => (
+                          <Cell key={i} fill={INCOME_COLORS[i % INCOME_COLORS.length]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN - Add Form + Recent Transactions */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Add Transaction Form */}
+          <AddTransactionForm />
+
+          {/* Recent transactions */}
+          <Card className="border-none shadow-sm">
+            <CardHeader className="flex-row items-center justify-between space-y-0">
+              <CardTitle className="text-base font-heading">Recent Transactions</CardTitle>
+              <Link to="/history" className="text-xs text-primary hover:underline font-medium">
+                See all transactions →
+              </Link>
+            </CardHeader>
+            <CardContent>
+              {/* Type filter */}
+              <div className="flex gap-1 mb-4">
+                {(["all", "income", "expense"] as const).map(t => (
+                  <button
+                    key={t}
+                    onClick={() => setTypeFilter(t)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                      typeFilter === t
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {t === "all" ? "All" : t === "income" ? "Income" : "Expenses"}
+                  </button>
+                ))}
+              </div>
+
+              {recent.length === 0 ? (
+                <p className="text-muted-foreground text-sm text-center py-8">No transactions yet</p>
+              ) : (
+                <div className="space-y-3">
+                  {recent.map(t => (
+                    <div key={t.id} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${t.type === "income" ? "bg-income" : "bg-expense"}`} />
+                        <div>
+                          <p className="text-sm font-medium">{t.description || t.category}</p>
+                          <p className="text-xs text-muted-foreground">{formatDate(t.date)}</p>
+                        </div>
+                      </div>
+                      <span className={`text-sm font-semibold ${t.type === "income" ? "text-income" : "text-expense"}`}>
+                        {t.type === "income" ? "+" : "-"}{formatCurrency(t.amount)}
+                      </span>
                     </div>
-                  </div>
-                  <span className={`text-sm font-semibold ${t.type === "income" ? "text-income" : "text-expense"}`}>
-                    {t.type === "income" ? "+" : "-"}{formatCurrency(t.amount)}
-                  </span>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
