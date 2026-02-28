@@ -4,11 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowUpRight, ArrowDownRight, Wallet, AlertTriangle, PlusCircle } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Wallet, AlertTriangle, PlusCircle, ChevronDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import AddTransactionForm from "@/components/AddTransactionForm";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const EXPENSE_COLORS = [
   "hsl(4, 40%, 72%)",
@@ -30,10 +31,10 @@ const INCOME_COLORS = [
 
 function getMonthOptions() {
   const months: { value: string; label: string }[] = [];
-  const now = new Date();
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  const year = new Date().getFullYear();
+  for (let m = 0; m < 12; m++) {
+    const d = new Date(year, m, 1);
+    const val = `${year}-${String(m + 1).padStart(2, "0")}`;
     const label = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
     months.push({ value: val, label });
   }
@@ -154,24 +155,24 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Card className={`border-none shadow-sm ${overBudget ? "bg-expense text-expense-foreground" : "bg-primary text-primary-foreground"}`}>
               <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
                     <p className="text-sm opacity-80">Balance</p>
                     <p className="text-2xl font-heading font-bold mt-1">{formatCurrency(balance)}</p>
                   </div>
-                  <Wallet className="w-8 h-8 opacity-60" />
+                  <Wallet className="w-8 h-8 opacity-60 flex-shrink-0" />
                 </div>
               </CardContent>
             </Card>
 
             <Card className="border-none shadow-sm">
               <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
                     <p className="text-sm text-muted-foreground">Income</p>
                     <p className="text-2xl font-heading font-bold text-income mt-1">{formatCurrency(totalIncome)}</p>
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-income/10 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-income/10 flex items-center justify-center flex-shrink-0">
                     <ArrowUpRight className="w-5 h-5 text-income" />
                   </div>
                 </div>
@@ -180,12 +181,12 @@ export default function Dashboard() {
 
             <Card className="border-none shadow-sm">
               <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
                     <p className="text-sm text-muted-foreground">Expenses</p>
                     <p className="text-2xl font-heading font-bold text-expense mt-1">{formatCurrency(totalExpense)}</p>
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-expense/10 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-expense/10 flex items-center justify-center flex-shrink-0">
                     <ArrowDownRight className="w-5 h-5 text-expense" />
                   </div>
                 </div>
@@ -195,55 +196,69 @@ export default function Dashboard() {
 
           {/* Charts */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Expense chart */}
-            <Card className="border-none shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-base font-heading">Expenses by Category</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {expenseByCategory.length === 0 ? (
-                  <p className="text-muted-foreground text-sm text-center py-8">No expenses yet</p>
-                ) : (
-                  <ResponsiveContainer width="100%" height={220}>
-                    <BarChart data={expenseByCategory} layout="vertical" margin={{ left: 0, right: 16 }}>
-                      <XAxis type="number" hide />
-                      <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                      <Tooltip content={<CategoryTooltip transactions={expenseTransactions} />} cursor={false} />
-                      <Bar dataKey="amount" radius={[0, 6, 6, 0]} barSize={20}>
-                        {expenseByCategory.map((_, i) => (
-                          <Cell key={i} fill={EXPENSE_COLORS[i % EXPENSE_COLORS.length]} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
+            {/* Expense chart - collapsible */}
+            <Collapsible defaultOpen={expenseByCategory.length > 0}>
+              <Card className="border-none shadow-sm">
+                <CollapsibleTrigger className="w-full">
+                  <CardHeader className="flex-row items-center justify-between space-y-0 cursor-pointer hover:bg-accent/30 transition-colors rounded-t-lg">
+                    <CardTitle className="text-base font-heading">Expenses by Category</CardTitle>
+                    <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform [[data-state=open]_&]:rotate-180" />
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent>
+                    {expenseByCategory.length === 0 ? (
+                      <p className="text-muted-foreground text-sm text-center py-8">No expenses yet</p>
+                    ) : (
+                      <ResponsiveContainer width="100%" height={Math.max(120, expenseByCategory.length * 40)}>
+                        <BarChart data={expenseByCategory} layout="vertical" margin={{ left: 0, right: 16 }}>
+                          <XAxis type="number" hide />
+                          <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                          <Tooltip content={<CategoryTooltip transactions={expenseTransactions} />} cursor={false} />
+                          <Bar dataKey="amount" radius={[0, 6, 6, 0]} barSize={20}>
+                            {expenseByCategory.map((_, i) => (
+                              <Cell key={i} fill={EXPENSE_COLORS[i % EXPENSE_COLORS.length]} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
 
-            {/* Income chart */}
-            <Card className="border-none shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-base font-heading">Income by Category</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {incomeByCategory.length === 0 ? (
-                  <p className="text-muted-foreground text-sm text-center py-8">No income yet</p>
-                ) : (
-                  <ResponsiveContainer width="100%" height={220}>
-                    <BarChart data={incomeByCategory} layout="vertical" margin={{ left: 0, right: 16 }}>
-                      <XAxis type="number" hide />
-                      <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                      <Tooltip content={<CategoryTooltip transactions={incomeTransactions} />} cursor={false} />
-                      <Bar dataKey="amount" radius={[0, 6, 6, 0]} barSize={20}>
-                        {incomeByCategory.map((_, i) => (
-                          <Cell key={i} fill={INCOME_COLORS[i % INCOME_COLORS.length]} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
+            {/* Income chart - collapsible */}
+            <Collapsible defaultOpen={incomeByCategory.length > 0}>
+              <Card className="border-none shadow-sm">
+                <CollapsibleTrigger className="w-full">
+                  <CardHeader className="flex-row items-center justify-between space-y-0 cursor-pointer hover:bg-accent/30 transition-colors rounded-t-lg">
+                    <CardTitle className="text-base font-heading">Income by Category</CardTitle>
+                    <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform [[data-state=open]_&]:rotate-180" />
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent>
+                    {incomeByCategory.length === 0 ? (
+                      <p className="text-muted-foreground text-sm text-center py-8">No income yet</p>
+                    ) : (
+                      <ResponsiveContainer width="100%" height={Math.max(120, incomeByCategory.length * 40)}>
+                        <BarChart data={incomeByCategory} layout="vertical" margin={{ left: 0, right: 16 }}>
+                          <XAxis type="number" hide />
+                          <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+                          <Tooltip content={<CategoryTooltip transactions={incomeTransactions} />} cursor={false} />
+                          <Bar dataKey="amount" radius={[0, 6, 6, 0]} barSize={20}>
+                            {incomeByCategory.map((_, i) => (
+                              <Cell key={i} fill={INCOME_COLORS[i % INCOME_COLORS.length]} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
           </div>
         </div>
 

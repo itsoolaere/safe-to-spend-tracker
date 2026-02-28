@@ -13,10 +13,10 @@ import { Link } from "react-router-dom";
 
 function getMonthOptions() {
   const months: { value: string; label: string }[] = [];
-  const now = new Date();
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  const year = new Date().getFullYear();
+  for (let m = 0; m < 12; m++) {
+    const d = new Date(year, m, 1);
+    const val = `${year}-${String(m + 1).padStart(2, "0")}`;
     const label = d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
     months.push({ value: val, label });
   }
