@@ -26,9 +26,8 @@ function getMonthOptions() {
 }
 
 export default function TransactionHistory() {
-  const { data, deleteTransaction, updateTransaction } = useBudget();
+  const { data, deleteTransaction, updateTransaction, period, setPeriod } = useBudget();
   const { transactions } = data;
-  const [period, setPeriod] = useState("all");
   const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense">("all");
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [editAmount, setEditAmount] = useState("");

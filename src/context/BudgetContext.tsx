@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from "react";
 import { AppData, Transaction, Budget } from "@/lib/types";
 import {
   loadData,
@@ -9,8 +9,15 @@ import {
   addCategory as addCat,
 } from "@/lib/storage";
 
+function getCurrentMonth() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
 interface BudgetContextType {
   data: AppData;
+  period: string;
+  setPeriod: (p: string) => void;
   addTransaction: (t: Omit<Transaction, "id">) => void;
   deleteTransaction: (id: string) => void;
   updateTransaction: (id: string, updates: Partial<Omit<Transaction, "id">>) => void;
@@ -22,6 +29,7 @@ const BudgetContext = createContext<BudgetContextType | null>(null);
 
 export function BudgetProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<AppData>(loadData);
+  const [period, setPeriod] = useState(getCurrentMonth);
 
   const addTransaction = useCallback((t: Omit<Transaction, "id">) => {
     setData(prev => addTx(prev, t));
@@ -44,7 +52,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <BudgetContext.Provider value={{ data, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory }}>
+    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory }}>
       {children}
     </BudgetContext.Provider>
   );
