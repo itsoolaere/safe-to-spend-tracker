@@ -1,11 +1,19 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
 import { AppData, Transaction, Budget } from "@/lib/types";
-import { loadData, addTransaction as addTx, deleteTransaction as delTx, updateBudgets as updateBdg, addCategory as addCat } from "@/lib/storage";
+import {
+  loadData,
+  addTransaction as addTx,
+  deleteTransaction as delTx,
+  updateTransaction as updTx,
+  updateBudgets as updateBdg,
+  addCategory as addCat,
+} from "@/lib/storage";
 
 interface BudgetContextType {
   data: AppData;
   addTransaction: (t: Omit<Transaction, "id">) => void;
   deleteTransaction: (id: string) => void;
+  updateTransaction: (id: string, updates: Partial<Omit<Transaction, "id">>) => void;
   updateBudgets: (budgets: Budget[]) => void;
   addCategory: (type: "income" | "expense", name: string) => void;
 }
@@ -23,6 +31,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     setData(prev => delTx(prev, id));
   }, []);
 
+  const updateTransaction = useCallback((id: string, updates: Partial<Omit<Transaction, "id">>) => {
+    setData(prev => updTx(prev, id, updates));
+  }, []);
+
   const updateBudgets = useCallback((budgets: Budget[]) => {
     setData(prev => updateBdg(prev, budgets));
   }, []);
@@ -32,7 +44,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <BudgetContext.Provider value={{ data, addTransaction, deleteTransaction, updateBudgets, addCategory }}>
+    <BudgetContext.Provider value={{ data, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory }}>
       {children}
     </BudgetContext.Provider>
   );

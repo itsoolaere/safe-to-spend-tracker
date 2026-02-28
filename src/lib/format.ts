@@ -1,10 +1,9 @@
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "NGN",
+  const formatted = new Intl.NumberFormat("en-NG", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
-  }).format(amount);
+  }).format(Math.abs(amount));
+  return `${amount < 0 ? "-" : ""}₦${formatted}`;
 }
 
 export function formatDate(iso: string): string {

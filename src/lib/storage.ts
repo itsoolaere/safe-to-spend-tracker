@@ -44,6 +44,15 @@ export function deleteTransaction(data: AppData, id: string): AppData {
   return updated;
 }
 
+export function updateTransaction(data: AppData, id: string, updates: Partial<Omit<Transaction, "id">>): AppData {
+  const updated = {
+    ...data,
+    transactions: data.transactions.map(t => t.id === id ? { ...t, ...updates } : t),
+  };
+  saveData(updated);
+  return updated;
+}
+
 export function updateBudgets(data: AppData, budgets: Budget[]): AppData {
   const updated = { ...data, budgets };
   saveData(updated);

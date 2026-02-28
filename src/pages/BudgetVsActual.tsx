@@ -73,7 +73,7 @@ export default function BudgetVsActual() {
                     <div className="w-20">
                       <Input
                         className="h-7 text-xs text-right"
-                        value={editLimits[cat] ?? formatCurrency(budgetMap[cat] || 500).replace("$", "")}
+                        value={editLimits[cat] ?? formatCurrency(budgetMap[cat] || 500).replace("₦", "")}
                         onChange={e => setEditLimits(p => ({ ...p, [cat]: e.target.value }))}
                         onFocus={() => {
                           if (!(cat in editLimits)) {
