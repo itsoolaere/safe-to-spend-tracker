@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, PlusCircle, ChevronDown } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { AlertTriangle, PlusCircle, ChevronDown, Target } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -175,7 +176,75 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {/* Charts */}
+          {/* Mini Budget Widget */}
+          {(() => {
+            const activeBudgets = data.budgets.filter(b => b.limit > 0);
+            if (activeBudgets.length === 0) return null;
+
+            const monthlyExpenses: Record<string, number> = {};
+            filtered.filter(t => t.type === "expense").forEach(t => {
+              monthlyExpenses[t.category] = (monthlyExpenses[t.category] || 0) + t.amount;
+            });
+
+            const totalBudget = activeBudgets.reduce((s, b) => s + b.limit, 0);
+            const totalSpentBudget = activeBudgets.reduce((s, b) => s + (monthlyExpenses[b.category] || 0), 0);
+            const overallPct = totalBudget > 0 ? Math.min((totalSpentBudget / totalBudget) * 100, 100) : 0;
+            const isOver = totalSpentBudget > totalBudget;
+
+            // Top 3 most-used budget categories
+            const top = activeBudgets
+              .map(b => ({ ...b, spent: monthlyExpenses[b.category] || 0, pct: b.limit > 0 ? Math.min(((monthlyExpenses[b.category] || 0) / b.limit) * 100, 100) : 0 }))
+              .sort((a, b) => b.pct - a.pct)
+              .slice(0, 3);
+
+            return (
+              <Card className="border-none shadow-sm">
+                <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4 text-primary" />
+                    <CardTitle className="text-base font-heading">Budget Overview</CardTitle>
+                  </div>
+                  <Link to="/budget" className="text-xs text-primary hover:underline font-medium">
+                    Manage →
+                  </Link>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Overall progress */}
+                  <div>
+                    <div className="flex justify-between text-xs mb-1.5">
+                      <span className="text-muted-foreground">Overall</span>
+                      <span className={`font-semibold ${isOver ? "text-expense" : ""}`}>
+                        {formatCurrency(totalSpentBudget)} / {formatCurrency(totalBudget)}
+                      </span>
+                    </div>
+                    <Progress
+                      value={overallPct}
+                      className={`h-2.5 ${isOver ? "[&>div]:bg-expense" : "[&>div]:bg-primary"}`}
+                    />
+                  </div>
+
+                  {/* Top categories */}
+                  <div className="space-y-2.5">
+                    {top.map(b => (
+                      <div key={b.category}>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="text-muted-foreground">{b.category}</span>
+                          <span className={`font-medium ${b.spent > b.limit ? "text-expense" : ""}`}>
+                            {Math.round(b.pct)}%
+                          </span>
+                        </div>
+                        <Progress
+                          value={b.pct}
+                          className={`h-1.5 ${b.spent > b.limit ? "[&>div]:bg-expense" : "[&>div]:bg-primary/60"}`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {/* Expense chart - collapsible */}
             <Collapsible defaultOpen={expenseByCategory.length > 0} open={expenseByCategory.length === 0 ? false : undefined}>
