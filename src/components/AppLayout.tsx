@@ -1,13 +1,19 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, List } from "lucide-react";
+import { LayoutDashboard, List, Target } from "lucide-react";
+import { useBudget } from "@/context/BudgetContext";
 
-const links = [
+const baseLinks = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/history", label: "History", icon: List },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const { data } = useBudget();
+  const hasActiveBudgets = data.budgets.some(b => b.limit > 0);
+  const links = hasActiveBudgets
+    ? [...baseLinks, { to: "/budget", label: "Budget", icon: Target }]
+    : baseLinks;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

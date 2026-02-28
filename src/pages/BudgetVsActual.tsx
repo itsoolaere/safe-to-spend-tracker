@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Save, Plus, Trash2, ArrowLeft } from "lucide-react";
+import { Save, Plus, Trash2, ArrowLeft, Pencil } from "lucide-react";
 import { Link } from "react-router-dom";
 
 function getMonthOptions() {
@@ -23,14 +24,21 @@ function getMonthOptions() {
   return months;
 }
 
+const formatInputAmount = (val: string) => {
+  const clean = val.replace(/[^0-9.]/g, "");
+  const parts = clean.split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return parts.length > 1 ? `${parts[0]}.${parts[1].slice(0, 2)}` : parts[0];
+};
+
 export default function BudgetVsActual() {
   const { data, updateBudgets, period, setPeriod } = useBudget();
   const monthOptions = useMemo(getMonthOptions, []);
 
-  // New budget entry form
   const [newCategory, setNewCategory] = useState("");
   const [newType, setNewType] = useState<"expense" | "income">("expense");
   const [newAmount, setNewAmount] = useState("");
+  const [editLimits, setEditLimits] = useState<Record<string, string>>({});
 
   const monthlyExpenses = useMemo(() => {
     const map: Record<string, number> = {};
@@ -40,15 +48,20 @@ export default function BudgetVsActual() {
     return map;
   }, [data.transactions, period]);
 
-  const categories = data.categories.expense.filter(c => c !== "Other");
+  // Only show budgets with limit > 0
+  const activeBudgets = data.budgets.filter(b => b.limit > 0);
   const budgetMap = Object.fromEntries(data.budgets.map(b => [b.category, b.limit]));
 
-  const [editLimits, setEditLimits] = useState<Record<string, string>>({});
+  const hasEdits = Object.keys(editLimits).length > 0;
+  const totalBudget = activeBudgets.reduce((s, b) => s + b.limit, 0);
+  const totalSpent = activeBudgets.reduce((s, b) => s + (monthlyExpenses[b.category] || 0), 0);
 
   const handleSave = () => {
-    const newBudgets = categories.map(c => ({
-      category: c,
-      limit: parseFloat(editLimits[c]?.replace(/,/g, "") || "") || budgetMap[c] || 500,
+    const newBudgets = data.budgets.map(b => ({
+      category: b.category,
+      limit: editLimits[b.category] !== undefined
+        ? (parseFloat(editLimits[b.category].replace(/,/g, "")) || 0)
+        : b.limit,
     }));
     updateBudgets(newBudgets);
     setEditLimits({});
@@ -68,23 +81,13 @@ export default function BudgetVsActual() {
   };
 
   const handleDeleteBudget = (category: string) => {
-    updateBudgets(data.budgets.filter(b => b.category !== category));
+    updateBudgets(data.budgets.map(b => b.category === category ? { ...b, limit: 0 } : b));
     toast.success("Budget removed");
-  };
-
-  const hasEdits = Object.keys(editLimits).length > 0;
-  const totalBudget = data.budgets.reduce((s, b) => s + b.limit, 0);
-  const totalSpent = Object.values(monthlyExpenses).reduce((s, v) => s + v, 0);
-
-  const formatInputAmount = (val: string) => {
-    const clean = val.replace(/[^0-9.]/g, "");
-    const parts = clean.split(".");
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    return parts.length > 1 ? `${parts[0]}.${parts[1].slice(0, 2)}` : parts[0];
   };
 
   return (
     <div className="space-y-6 pb-20 sm:pb-0">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" asChild>
@@ -161,8 +164,8 @@ export default function BudgetVsActual() {
         </CardContent>
       </Card>
 
-      {/* Summary */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* Summary row */}
+      <div className="grid grid-cols-3 gap-4">
         <Card className="border-none shadow-sm">
           <CardContent className="pt-5 pb-4 text-center">
             <p className="text-xs text-muted-foreground">Total Budget</p>
@@ -177,44 +180,83 @@ export default function BudgetVsActual() {
             </p>
           </CardContent>
         </Card>
+        <Card className="border-none shadow-sm">
+          <CardContent className="pt-5 pb-4 text-center">
+            <p className="text-xs text-muted-foreground">Remaining</p>
+            <p className={`text-xl font-heading font-bold mt-1 ${totalBudget - totalSpent < 0 ? "text-expense" : "text-income"}`}>
+              {formatCurrency(totalBudget - totalSpent)}
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Budget items with progress */}
-      <div className="space-y-3">
-        {data.budgets.length === 0 ? (
-          <Card className="border-none shadow-sm">
-            <CardContent className="py-12 text-center text-muted-foreground text-sm">
-              No budgets set yet. Add one above to get started.
-            </CardContent>
-          </Card>
-        ) : (
-          data.budgets.map(budget => {
-            const spent = monthlyExpenses[budget.category] || 0;
-            const pct = budget.limit > 0 ? Math.min((spent / budget.limit) * 100, 100) : 0;
-            const over = spent > budget.limit;
+      {/* Budget table */}
+      {activeBudgets.length === 0 ? (
+        <Card className="border-none shadow-sm">
+          <CardContent className="py-12 text-center text-muted-foreground text-sm">
+            No active budgets. Add one above to get started.
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="border-none shadow-sm overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[180px]">Category</TableHead>
+                <TableHead>Progress</TableHead>
+                <TableHead className="text-right w-[120px]">Spent</TableHead>
+                <TableHead className="text-right w-[120px]">Budget</TableHead>
+                <TableHead className="text-right w-[60px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {activeBudgets.map(budget => {
+                const spent = monthlyExpenses[budget.category] || 0;
+                const pct = budget.limit > 0 ? Math.min((spent / budget.limit) * 100, 100) : 0;
+                const over = spent > budget.limit;
+                const isEditing = budget.category in editLimits;
 
-            return (
-              <Card key={budget.category} className="border-none shadow-sm">
-                <CardContent className="pt-5 pb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium text-sm">{budget.category}</h3>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm font-semibold ${over ? "text-expense" : "text-foreground"}`}>
-                        {formatCurrency(spent)}
-                      </span>
-                      <span className="text-muted-foreground text-xs">/</span>
-                      <div className="w-20">
-                        <Input
-                          className="h-7 text-xs text-right"
-                          value={editLimits[budget.category] ?? formatInputAmount(String(budget.limit))}
-                          onChange={e => setEditLimits(p => ({ ...p, [budget.category]: e.target.value }))}
-                          onFocus={() => {
-                            if (!(budget.category in editLimits)) {
-                              setEditLimits(p => ({ ...p, [budget.category]: String(budget.limit) }));
-                            }
-                          }}
+                return (
+                  <TableRow key={budget.category}>
+                    <TableCell className="font-medium text-sm">{budget.category}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Progress
+                          value={pct}
+                          className={`h-2 flex-1 ${over ? "[&>div]:bg-expense" : "[&>div]:bg-primary"}`}
                         />
+                        <span className={`text-xs font-medium w-10 text-right ${over ? "text-expense" : "text-muted-foreground"}`}>
+                          {Math.round(pct)}%
+                        </span>
                       </div>
+                      {over && (
+                        <p className="text-[11px] text-expense mt-0.5 font-medium">
+                          Over by {formatCurrency(spent - budget.limit)}
+                        </p>
+                      )}
+                    </TableCell>
+                    <TableCell className={`text-right text-sm font-semibold ${over ? "text-expense" : ""}`}>
+                      {formatCurrency(spent)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {isEditing ? (
+                        <Input
+                          className="h-7 text-xs text-right w-24 ml-auto"
+                          value={editLimits[budget.category]}
+                          onChange={e => setEditLimits(p => ({ ...p, [budget.category]: formatInputAmount(e.target.value) }))}
+                          autoFocus
+                        />
+                      ) : (
+                        <button
+                          className="text-sm font-medium inline-flex items-center gap-1 hover:text-primary transition-colors group"
+                          onClick={() => setEditLimits(p => ({ ...p, [budget.category]: String(budget.limit) }))}
+                        >
+                          {formatCurrency(budget.limit)}
+                          <Pencil className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </button>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -223,23 +265,14 @@ export default function BudgetVsActual() {
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
-                    </div>
-                  </div>
-                  <Progress
-                    value={pct}
-                    className={`h-2 ${over ? "[&>div]:bg-expense" : "[&>div]:bg-primary"}`}
-                  />
-                  {over && (
-                    <p className="text-xs text-expense mt-1 font-medium">
-                      Over budget by {formatCurrency(spent - budget.limit)}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })
-        )}
-      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </Card>
+      )}
     </div>
   );
 }
