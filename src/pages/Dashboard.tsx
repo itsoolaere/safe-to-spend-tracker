@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowUpRight, ArrowDownRight, Wallet, AlertTriangle, PlusCircle, ChevronDown } from "lucide-react";
+import { AlertTriangle, PlusCircle, ChevronDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -155,41 +155,22 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Card className={`border-none shadow-sm ${overBudget ? "bg-expense text-expense-foreground" : "bg-primary text-primary-foreground"}`}>
               <CardContent className="pt-6">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-sm opacity-80">Balance</p>
-                    <p className="text-2xl font-heading font-bold mt-1">{formatCurrency(balance)}</p>
-                  </div>
-                  <Wallet className="w-8 h-8 opacity-60 flex-shrink-0" />
-                </div>
+                <p className="text-sm opacity-80">Balance</p>
+                <p className="text-2xl font-heading font-bold mt-1">{formatCurrency(balance)}</p>
               </CardContent>
             </Card>
 
             <Card className="border-none shadow-sm">
               <CardContent className="pt-6">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-sm text-muted-foreground">Income</p>
-                    <p className="text-2xl font-heading font-bold text-income mt-1">{formatCurrency(totalIncome)}</p>
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-income/10 flex items-center justify-center flex-shrink-0">
-                    <ArrowUpRight className="w-5 h-5 text-income" />
-                  </div>
-                </div>
+                <p className="text-sm text-muted-foreground">Income</p>
+                <p className="text-2xl font-heading font-bold text-income mt-1">{formatCurrency(totalIncome)}</p>
               </CardContent>
             </Card>
 
             <Card className="border-none shadow-sm">
               <CardContent className="pt-6">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-sm text-muted-foreground">Expenses</p>
-                    <p className="text-2xl font-heading font-bold text-expense mt-1">{formatCurrency(totalExpense)}</p>
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-expense/10 flex items-center justify-center flex-shrink-0">
-                    <ArrowDownRight className="w-5 h-5 text-expense" />
-                  </div>
-                </div>
+                <p className="text-sm text-muted-foreground">Expenses</p>
+                <p className="text-2xl font-heading font-bold text-expense mt-1">{formatCurrency(totalExpense)}</p>
               </CardContent>
             </Card>
           </div>
@@ -197,7 +178,7 @@ export default function Dashboard() {
           {/* Charts */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {/* Expense chart - collapsible */}
-            <Collapsible defaultOpen={expenseByCategory.length > 0}>
+            <Collapsible defaultOpen={expenseByCategory.length > 0} open={expenseByCategory.length === 0 ? false : undefined}>
               <Card className="border-none shadow-sm">
                 <CollapsibleTrigger className="w-full">
                   <CardHeader className="flex-row items-center justify-between space-y-0 cursor-pointer hover:bg-accent/30 transition-colors rounded-t-lg">
@@ -229,7 +210,7 @@ export default function Dashboard() {
             </Collapsible>
 
             {/* Income chart - collapsible */}
-            <Collapsible defaultOpen={incomeByCategory.length > 0}>
+            <Collapsible defaultOpen={incomeByCategory.length > 0} open={incomeByCategory.length === 0 ? false : undefined}>
               <Card className="border-none shadow-sm">
                 <CollapsibleTrigger className="w-full">
                   <CardHeader className="flex-row items-center justify-between space-y-0 cursor-pointer hover:bg-accent/30 transition-colors rounded-t-lg">
