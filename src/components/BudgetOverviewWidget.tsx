@@ -51,9 +51,9 @@ export default function BudgetOverviewWidget({ budgets, transactions, period }: 
       </CardHeader>
       <CardContent className="space-y-4">
         {expBudgets.length > 0 &&
-        <div>
+        <Link to="/budget" className="block group">
             <div className="flex justify-between text-xs mb-1.5">
-              <span className="text-muted-foreground">Expenses</span>
+              <span className="text-muted-foreground group-hover:text-foreground transition-colors">Expenses</span>
               <span className={`font-semibold ${expOver ? "text-expense" : ""}`}>
                 {formatCurrency(totalExpSpent)} / {formatCurrency(totalExpBudget)}
               </span>
@@ -61,13 +61,12 @@ export default function BudgetOverviewWidget({ budgets, transactions, period }: 
             <Progress
             value={expPct}
             className={`h-2 ${expOver ? "[&>div]:bg-expense" : "[&>div]:bg-primary"}`} />
-
-          </div>
+          </Link>
         }
         {incBudgets.length > 0 &&
-        <div>
+        <Link to="/budget" className="block group">
             <div className="flex justify-between text-xs mb-1.5">
-              <span className="text-muted-foreground">Income</span>
+              <span className="text-muted-foreground group-hover:text-foreground transition-colors">Income</span>
               <span className="font-semibold">
                 {formatCurrency(totalIncActual)} / {formatCurrency(totalIncBudget)}
               </span>
@@ -75,8 +74,7 @@ export default function BudgetOverviewWidget({ budgets, transactions, period }: 
             <Progress
             value={incPct}
             className="h-2 [&>div]:bg-income" />
-
-          </div>
+          </Link>
         }
       </CardContent>
     </Card>);
