@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useBudget } from "@/context/BudgetContext";
+import { useSignUpGate } from "@/hooks/useSignUpGate";
 import { formatInputAmount } from "@/lib/format";
 import { TransactionType, DEFAULT_CATEGORIES } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,6 +18,7 @@ import { cn } from "@/lib/utils";
 
 export default function AddTransactionForm() {
   const { data, addTransaction, addCategory, deleteCategory } = useBudget();
+  const { isGateLocked, setManualTrigger } = useSignUpGate();
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<TransactionType>("expense");
   const [amount, setAmount] = useState("");
@@ -60,13 +62,19 @@ export default function AddTransactionForm() {
 
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
-      <Card className="border-none shadow-sm">
+    <Collapsible open={open} onOpenChange={(v) => {
+      if (v && isGateLocked) {
+        setManualTrigger(true);
+        return;
+      }
+      setOpen(v);
+    }}>
+      <Card className={cn("border-none shadow-sm", isGateLocked && "opacity-60")}>
         <CollapsibleTrigger asChild>
           <button className="w-full flex items-center justify-between p-5 text-left">
             <span className="font-heading font-semibold text-base flex items-center gap-2">
               <PlusCircle className="w-4 h-4 text-primary" />
-              New Entry
+              {isGateLocked ? "Sign in to add entries" : "New Entry"}
             </span>
             <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", open && "rotate-180")} />
           </button>
