@@ -93,19 +93,19 @@ export default function Dashboard() {
             <Card className={`border-none shadow-sm ${overBudget ? "bg-expense text-expense-foreground" : "bg-primary text-primary-foreground"}`}>
               <CardContent className="pt-6">
                 <p className="text-sm opacity-80">safe to spend</p>
-                <p className="text-2xl font-heading font-bold mt-1">{formatCurrency(balance)}</p>
+                <p className="font-heading font-bold mt-1 text-xl">{formatCurrency(balance)}</p>
               </CardContent>
             </Card>
             <Card className="border-none shadow-sm">
               <CardContent className="pt-6">
                 <p className="text-sm text-muted-foreground">Income</p>
-                <p className="text-2xl font-heading font-bold text-income mt-1">{formatCurrency(totalIncome)}</p>
+                <p className="font-heading font-bold text-income mt-1 text-xl">{formatCurrency(totalIncome)}</p>
               </CardContent>
             </Card>
             <Card className="border-none shadow-sm">
               <CardContent className="pt-6">
                 <p className="text-sm text-muted-foreground">Expenses</p>
-                <p className="text-2xl font-heading font-bold text-expense mt-1">{formatCurrency(totalExpense)}</p>
+                <p className="font-heading font-bold text-expense mt-1 text-xl">{formatCurrency(totalExpense)}</p>
               </CardContent>
             </Card>
           </div>
