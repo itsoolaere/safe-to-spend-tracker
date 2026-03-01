@@ -40,6 +40,11 @@ export default function BudgetVsActual() {
     return map;
   }, [data.transactions, period]);
 
+  const periodTransactions = useMemo(
+    () => data.transactions.filter((t) => t.date.startsWith(period)),
+    [data.transactions, period]
+  );
+
   const hasEdits = Object.keys(editLimits).length > 0;
 
   const totalExpenseBudget = expenseBudgets.filter((b) => b.limit > 0).reduce((s, b) => s + b.limit, 0);
@@ -199,8 +204,8 @@ export default function BudgetVsActual() {
         </Card> :
 
       <div className="space-y-6">
-          <BudgetTable type="expense" label="Expense Budgets" budgets={expenseBudgets} actuals={monthlyExpenses} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("expense")} />
-          <BudgetTable type="income" label="Income Budgets" budgets={incomeBudgets} actuals={monthlyIncome} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("income")} />
+          <BudgetTable type="expense" label="Expense Budgets" budgets={expenseBudgets} actuals={monthlyExpenses} transactions={periodTransactions} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("expense")} />
+          <BudgetTable type="income" label="Income Budgets" budgets={incomeBudgets} actuals={monthlyIncome} transactions={periodTransactions} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("income")} />
         </div>
       }
     </div>);
