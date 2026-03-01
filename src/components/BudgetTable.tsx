@@ -1,16 +1,19 @@
-import { formatCurrency, formatInputAmount } from "@/lib/format";
+import { formatCurrency, formatInputAmount, formatDate } from "@/lib/format";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Trash2, Pencil } from "lucide-react";
+import { Transaction } from "@/lib/types";
 
 interface BudgetTableProps {
   type: "income" | "expense";
   label: string;
   budgets: { category: string; limit: number; type: "income" | "expense"; month: string }[];
   actuals: Record<string, number>;
+  transactions: Transaction[];
   editLimits: Record<string, string>;
   setEditLimits: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   onDelete: (category: string) => void;
@@ -21,6 +24,7 @@ export default function BudgetTable({
   label,
   budgets,
   actuals,
+  transactions,
   editLimits,
   setEditLimits,
   onDelete,
@@ -60,9 +64,44 @@ export default function BudgetTable({
               const editKey = `${type}-${budget.category}`;
               const isEditing = editKey in editLimits;
 
+              const categoryTxs = transactions.filter(t => t.category === budget.category && t.type === type);
+
               return (
                 <TableRow key={budget.category}>
-                  <TableCell className="font-medium text-sm">{budget.category}</TableCell>
+                  <TableCell className="font-medium text-sm">
+                    <HoverCard openDelay={200} closeDelay={100}>
+                      <HoverCardTrigger asChild>
+                        <span className="cursor-default hover:text-primary transition-colors">
+                          {budget.category}
+                        </span>
+                      </HoverCardTrigger>
+                      <HoverCardContent side="right" align="start" className="w-72 p-0">
+                        <div className="p-3 border-b">
+                          <p className="font-heading font-semibold text-sm">{budget.category}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {categoryTxs.length} transaction{categoryTxs.length !== 1 ? "s" : ""} · {formatCurrency(actual)} of {formatCurrency(budget.limit)}
+                          </p>
+                        </div>
+                        <div className="max-h-48 overflow-y-auto">
+                          {categoryTxs.length === 0 ? (
+                            <p className="text-xs text-muted-foreground p-3">No transactions yet.</p>
+                          ) : (
+                            categoryTxs
+                              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                              .map(tx => (
+                                <div key={tx.id} className="flex items-center justify-between px-3 py-2 border-b last:border-b-0 text-xs">
+                                  <div className="min-w-0 flex-1 mr-2">
+                                    <p className="font-medium truncate">{tx.description || "—"}</p>
+                                    <p className="text-muted-foreground">{formatDate(tx.date)}</p>
+                                  </div>
+                                  <span className="font-semibold whitespace-nowrap">{formatCurrency(tx.amount)}</span>
+                                </div>
+                              ))
+                          )}
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Progress

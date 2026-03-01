@@ -199,8 +199,8 @@ export default function BudgetVsActual() {
         </Card>
       ) : (
         <div className="space-y-6">
-          <BudgetTable type="expense" label="Expense Budgets" budgets={expenseBudgets} actuals={monthlyExpenses} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("expense")} />
-          <BudgetTable type="income" label="Income Budgets" budgets={incomeBudgets} actuals={monthlyIncome} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("income")} />
+          <BudgetTable type="expense" label="Expense Budgets" budgets={expenseBudgets} actuals={monthlyExpenses} transactions={data.transactions.filter(t => t.type === "expense" && t.date.startsWith(period))} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("expense")} />
+          <BudgetTable type="income" label="Income Budgets" budgets={incomeBudgets} actuals={monthlyIncome} transactions={data.transactions.filter(t => t.type === "income" && t.date.startsWith(period))} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("income")} />
         </div>
       )}
     </div>
