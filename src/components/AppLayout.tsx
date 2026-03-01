@@ -4,7 +4,7 @@ import { useBudget } from "@/context/BudgetContext";
 
 const baseLinks = [
 { to: "/", label: "Dashboard", icon: LayoutDashboard },
-{ to: "/history", label: "History", icon: List }];
+{ to: "/history", label: "Journal", icon: List }];
 
 
 export default function AppLayout({ children }: {children: React.ReactNode;}) {
