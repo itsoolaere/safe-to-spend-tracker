@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { LayoutDashboard, List, Target, LogOut, LogIn } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useBudget } from "@/context/BudgetContext";
 import { useAuth } from "@/context/AuthContext";
 import { useSignUpGate } from "@/hooks/useSignUpGate";
@@ -30,36 +31,48 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </h1>
           <nav className="hidden sm:flex gap-1 items-center">
             {links.map((l) => (
-              <NavLink
-                key={l.to}
-                to={l.to}
-                className={({ isActive }) =>
-                  `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                  }`
-                }
-              >
-                <l.icon className="w-4 h-4" />
-                {l.label}
-              </NavLink>
+              <Tooltip key={l.to}>
+                <TooltipTrigger asChild>
+                  <NavLink
+                    to={l.to}
+                    className={({ isActive }) =>
+                      `flex items-center justify-center w-9 h-9 rounded-lg transition-colors ${
+                        isActive
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                      }`
+                    }
+                  >
+                    <l.icon className="w-4 h-4" />
+                  </NavLink>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">{l.label}</TooltipContent>
+              </Tooltip>
             ))}
             {user ? (
-              <button
-                onClick={signOut}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors ml-2"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={signOut}
+                    className="flex items-center justify-center w-9 h-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors ml-1"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Sign out</TooltipContent>
+              </Tooltip>
             ) : (
-              <button
-                onClick={() => setManualTrigger(true)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors ml-2"
-              >
-                <LogIn className="w-4 h-4" />
-                Sign in
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => setManualTrigger(true)}
+                    className="flex items-center justify-center w-9 h-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors ml-1"
+                  >
+                    <LogIn className="w-4 h-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">Sign in</TooltipContent>
+              </Tooltip>
             )}
           </nav>
         </div>
