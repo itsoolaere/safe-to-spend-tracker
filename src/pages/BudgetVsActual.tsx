@@ -80,7 +80,7 @@ export default function BudgetVsActual() {
   const hasAnyBudgets = periodBudgets.some(b => b.limit > 0);
 
   return (
-    <div className="space-y-6 pb-20 sm:pb-0">
+    <div className="space-y-6 pb-20 sm:pb-0 max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
