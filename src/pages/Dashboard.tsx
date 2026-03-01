@@ -114,13 +114,6 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {!user && freeLeft < Infinity && (
-            <p className="text-xs text-muted-foreground italic">
-              {freeLeft > 0
-                ? `${freeLeft} free ${freeLeft === 1 ? "entry" : "entries"} left (${incomeLeft} income, ${expenseLeft} expense).`
-                : "guest limit reached."}
-            </p>
-          )}
 
           <BudgetOverviewWidget budgets={data.budgets} transactions={transactions} period={period} />
 
@@ -145,6 +138,13 @@ export default function Dashboard() {
         {/* RIGHT COLUMN - Add Form + Recent Transactions */}
         <div className="lg:col-span-2 space-y-6">
           <AddTransactionForm />
+          {!user && freeLeft < Infinity && (
+            <p className="text-xs text-muted-foreground italic text-center">
+              {freeLeft > 0
+                ? `${freeLeft} free ${freeLeft === 1 ? "entry" : "entries"} left (${incomeLeft} income, ${expenseLeft} expense).`
+                : "guest limit reached."}
+            </p>
+          )}
           <RecentTransactions transactions={filtered} />
         </div>
       </div>

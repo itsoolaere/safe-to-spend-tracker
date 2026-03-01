@@ -19,7 +19,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 export default function SignUpModal() {
   const { shouldPromptSignUp, reason, manualTrigger, setManualTrigger, dismiss } = useSignUpGate();
   const { toast } = useToast();
-  const [isSignUp, setIsSignUp] = useState(true);
+  const [isSignUp, setIsSignUp] = useState(manualTrigger ? false : true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
