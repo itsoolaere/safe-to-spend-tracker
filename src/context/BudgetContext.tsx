@@ -99,6 +99,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   const [syncing, setSyncing] = useState(false);
   const [pendingSync, setPendingSync] = useState<PendingSync | null>(null);
   const hasSynced = useRef(false);
+  const wasAuthenticated = useRef(false);
   const saveTimeout = useRef<ReturnType<typeof setTimeout>>();
 
   const confirmSync = useCallback(async (merge: boolean) => {
@@ -183,9 +184,12 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     sync();
   }, [user]);
 
-  // Reset sync flag and clear data on sign-out
+  // Reset sync flag and clear data only on actual sign-out (not page reload)
   useEffect(() => {
-    if (!user) {
+    if (user) {
+      wasAuthenticated.current = true;
+    } else if (wasAuthenticated.current) {
+      wasAuthenticated.current = false;
       hasSynced.current = false;
       const empty: AppData = {
         transactions: [],
