@@ -148,9 +148,18 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     sync();
   }, [user]);
 
-  // Reset sync flag on sign-out
+  // Reset sync flag and clear data on sign-out
   useEffect(() => {
-    if (!user) hasSynced.current = false;
+    if (!user) {
+      hasSynced.current = false;
+      const empty: AppData = {
+        transactions: [],
+        categories: { ...DEFAULT_CATEGORIES },
+        budgets: [],
+      };
+      setData(empty);
+      saveData(empty);
+    }
   }, [user]);
 
   const addTransaction = useCallback((t: Omit<Transaction, "id">) => {
