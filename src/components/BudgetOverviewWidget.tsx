@@ -43,7 +43,7 @@ export default function BudgetOverviewWidget({ budgets, transactions, period }: 
       <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
         <div className="flex items-center gap-2">
           
-          <CardTitle className="text-base font-heading">Budget Overview</CardTitle>
+          <CardTitle className="text-base font-heading">Budget's Story</CardTitle>
         </div>
         <Link to="/budget" className="text-xs text-primary hover:underline font-medium">
           Manage →

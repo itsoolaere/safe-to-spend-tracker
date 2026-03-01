@@ -126,7 +126,7 @@ export default function Dashboard() {
               emptyMessage="No expenses yet" />
 
             <CategoryChart
-              title="Income by Category"
+              title="What came in"
               data={incomeByCategory}
               colors={INCOME_COLORS}
               transactions={incomeTransactions}
