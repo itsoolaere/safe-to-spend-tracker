@@ -177,7 +177,7 @@ export default function BudgetVsActual() {
         <Card className="border-none shadow-sm">
           <CardContent className="pt-5 pb-4 text-center">
             <p className="text-xs text-muted-foreground">Income Budget</p>
-            <p className="text-lg font-heading font-bold mt-1">{formatCurrency(totalIncomeBudget)}</p>
+            <p className="font-heading font-bold mt-1 text-base">{formatCurrency(totalIncomeBudget)}</p>
           </CardContent>
         </Card>
         <Card className="border-none shadow-sm">
@@ -199,8 +199,8 @@ export default function BudgetVsActual() {
         </Card> :
 
       <div className="space-y-6">
-          <BudgetTable type="expense" label="Expense Budgets" budgets={expenseBudgets} actuals={monthlyExpenses} transactions={data.transactions.filter(t => t.date.startsWith(period))} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("expense")} />
-          <BudgetTable type="income" label="Income Budgets" budgets={incomeBudgets} actuals={monthlyIncome} transactions={data.transactions.filter(t => t.date.startsWith(period))} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("income")} />
+          <BudgetTable type="expense" label="Expense Budgets" budgets={expenseBudgets} actuals={monthlyExpenses} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("expense")} />
+          <BudgetTable type="income" label="Income Budgets" budgets={incomeBudgets} actuals={monthlyIncome} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("income")} />
         </div>
       }
     </div>);
