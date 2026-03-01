@@ -1,7 +1,8 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, List, Target, LogOut } from "lucide-react";
+import { LayoutDashboard, List, Target, LogOut, LogIn } from "lucide-react";
 import { useBudget } from "@/context/BudgetContext";
 import { useAuth } from "@/context/AuthContext";
+import { useSignUpGate } from "@/hooks/useSignUpGate";
 import SignUpModal from "@/components/SignUpModal";
 
 const baseLinks = [
@@ -13,6 +14,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const { data } = useBudget();
   const { user, signOut } = useAuth();
+  const { setManualTrigger } = useSignUpGate();
   const hasActiveBudgets = data.budgets.some((b) => b.limit > 0);
   const links = hasActiveBudgets
     ? [...baseLinks, { to: "/budget", label: "Budget", icon: Target }]
@@ -43,12 +45,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 {l.label}
               </NavLink>
             ))}
-            {user && (
+            {user ? (
               <button
                 onClick={signOut}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors ml-2"
               >
                 <LogOut className="w-4 h-4" />
+              </button>
+            ) : (
+              <button
+                onClick={() => setManualTrigger(true)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors ml-2"
+              >
+                <LogIn className="w-4 h-4" />
+                Sign in
               </button>
             )}
           </nav>

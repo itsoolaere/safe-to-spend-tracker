@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertTriangle, PlusCircle } from "lucide-react";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { useSignUpGate } from "@/hooks/useSignUpGate";
 import AddTransactionForm from "@/components/AddTransactionForm";
 import CategoryChart from "@/components/CategoryChart";
 import BudgetOverviewWidget from "@/components/BudgetOverviewWidget";
@@ -24,6 +26,8 @@ const INCOME_COLORS = [
 
 export default function Dashboard() {
   const { data, period, setPeriod } = useBudget();
+  const { user } = useAuth();
+  const { freeLeft, incomeLeft, expenseLeft } = useSignUpGate();
   const { transactions } = data;
   const monthOptions = useMemo(() => getMonthOptions(), []);
 
@@ -109,6 +113,14 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {!user && freeLeft < Infinity && (
+            <p className="text-xs text-muted-foreground italic">
+              {freeLeft > 0
+                ? `${freeLeft} free ${freeLeft === 1 ? "entry" : "entries"} left (${incomeLeft} income, ${expenseLeft} expense).`
+                : "guest limit reached."}
+            </p>
+          )}
 
           <BudgetOverviewWidget budgets={data.budgets} transactions={transactions} period={period} />
 

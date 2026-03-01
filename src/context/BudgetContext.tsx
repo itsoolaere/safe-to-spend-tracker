@@ -7,6 +7,7 @@ import {
   updateTransaction as updTx,
   updateBudgets as updateBdg,
   addCategory as addCat,
+  deleteCategory as delCat,
 } from "@/lib/storage";
 
 function getCurrentMonth() {
@@ -23,6 +24,7 @@ interface BudgetContextType {
   updateTransaction: (id: string, updates: Partial<Omit<Transaction, "id">>) => void;
   updateBudgets: (budgets: Budget[]) => void;
   addCategory: (type: "income" | "expense", name: string) => void;
+  deleteCategory: (type: "income" | "expense", name: string) => void;
 }
 
 const BudgetContext = createContext<BudgetContextType | null>(null);
@@ -51,8 +53,12 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     setData(prev => addCat(prev, type, name));
   }, []);
 
+  const deleteCategory = useCallback((type: "income" | "expense", name: string) => {
+    setData(prev => delCat(prev, type, name));
+  }, []);
+
   return (
-    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory }}>
+    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory }}>
       {children}
     </BudgetContext.Provider>
   );

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useBudget } from "@/context/BudgetContext";
 import { formatInputAmount } from "@/lib/format";
-import { TransactionType } from "@/lib/types";
+import { TransactionType, DEFAULT_CATEGORIES } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,12 +11,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
-import { PlusCircle, ChevronDown, CalendarIcon } from "lucide-react";
+import { PlusCircle, ChevronDown, CalendarIcon, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 export default function AddTransactionForm() {
-  const { data, addTransaction, addCategory } = useBudget();
+  const { data, addTransaction, addCategory, deleteCategory } = useBudget();
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<TransactionType>("expense");
   const [amount, setAmount] = useState("");
@@ -132,10 +132,28 @@ export default function AddTransactionForm() {
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map(c => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
+                        <SelectItem key={c} value={c}>
+                          <span className="flex items-center justify-between w-full gap-2">
+                            {c}
+                          </span>
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  {category && !DEFAULT_CATEGORIES[type].includes(category) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        deleteCategory(type, category);
+                        setCategory("");
+                        toast.success("Category removed");
+                      }}
+                      className="text-xs text-muted-foreground hover:text-expense flex items-center gap-1 mt-1"
+                    >
+                      <X className="w-3 h-3" />
+                      remove "{category}"
+                    </button>
+                  )}
                 </div>
               </div>
 

@@ -16,7 +16,7 @@ import {
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 
 export default function SignUpModal() {
-  const { shouldPromptSignUp } = useSignUpGate();
+  const { shouldPromptSignUp, reason, manualTrigger, setManualTrigger } = useSignUpGate();
   const { toast } = useToast();
   const [isSignUp, setIsSignUp] = useState(true);
   const [email, setEmail] = useState("");
@@ -65,12 +65,12 @@ export default function SignUpModal() {
   };
 
   return (
-    <Dialog open onOpenChange={() => {}}>
+    <Dialog open onOpenChange={(open) => { if (!open && manualTrigger) setManualTrigger(false); }}>
       <DialogPortal>
         <DialogOverlay className="bg-black/60 backdrop-blur-md" />
         <DialogPrimitive.Content
-          onPointerDownOutside={(e) => e.preventDefault()}
-          onEscapeKeyDown={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => { if (!manualTrigger) e.preventDefault(); else setManualTrigger(false); }}
+          onEscapeKeyDown={(e) => { if (!manualTrigger) e.preventDefault(); else setManualTrigger(false); }}
           className="fixed left-[50%] top-[50%] z-50 w-full max-w-sm translate-x-[-50%] translate-y-[-50%] rounded-lg border bg-card p-6 shadow-lg animate-in fade-in-0 zoom-in-95"
         >
           <DialogTitle className="font-heading text-xl italic font-medium text-foreground">
@@ -78,7 +78,9 @@ export default function SignUpModal() {
           </DialogTitle>
           <DialogDescription className="text-muted-foreground text-sm mt-1">
             {isSignUp
-              ? "sign up to keep your data safe."
+              ? reason
+                ? `${reason} sign up to keep your data and unlock unlimited entries.`
+                : "sign up to keep your data safe."
               : "sign in to continue."}
           </DialogDescription>
 
