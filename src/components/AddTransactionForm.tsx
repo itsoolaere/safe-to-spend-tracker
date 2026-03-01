@@ -162,7 +162,7 @@ export default function AddTransactionForm() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-xs">Description (optional)</Label>
+                  <Label className="text-xs">memo (optional)</Label>
                   <Input
                     placeholder="What was this for?"
                     value={description}
