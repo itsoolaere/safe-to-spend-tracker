@@ -68,3 +68,12 @@ export function addCategory(data: AppData, type: "income" | "expense", name: str
   saveData(updated);
   return updated;
 }
+
+export function deleteCategory(data: AppData, type: "income" | "expense", name: string): AppData {
+  const updated = {
+    ...data,
+    categories: { ...data.categories, [type]: data.categories[type].filter(c => c !== name) },
+  };
+  saveData(updated);
+  return updated;
+}
