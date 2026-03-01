@@ -1,72 +1,59 @@
 
 
-## Login / Landing Page Plan
+## Freemium / Guest Mode with Sign-Up Gate
 
-### Overview
-Create a split-screen page: left half is a minimal landing section with branding copy, right half is an auth form (email/password + Google). Supabase handles auth and user profiles.
+### Concept
+Remove the `/auth` landing page as the entry point. Let unauthenticated users straight into the app (using localStorage as they do now). After they hit a usage threshold — **1 income transaction + 7 expense transactions, or 1 week since first use** (whichever comes first) — a modal dialog appears with a blurred backdrop prompting sign-up. The modal is non-dismissible once triggered.
 
-### Database Setup (Supabase)
+### Implementation
 
-**Migration — `profiles` table:**
-```sql
-create table public.profiles (
-  id uuid references auth.users(id) on delete cascade primary key,
-  display_name text,
-  avatar_url text,
-  created_at timestamptz default now()
-);
+**1. Create `src/hooks/useSignUpGate.ts`**
+A hook that tracks guest usage and determines if the gate should trigger:
+- On first app load (no user, no stored timestamp), save `guest_started_at` to localStorage
+- Count income and expense transactions from BudgetContext
+- Return `{ shouldPromptSignUp: boolean }` — true when either:
+  - Income transactions >= 1 AND expense transactions >= 7
+  - More than 7 days since `guest_started_at`
 
-alter table public.profiles enable row level security;
+**2. Create `src/components/SignUpModal.tsx`**
+- A `Dialog` component (using existing Radix dialog) that renders the auth form (email/password + Google) inside a modal
+- Blurred overlay background (`backdrop-blur-md` on the overlay)
+- Non-dismissible: no close button, `onOpenChange` locked to `true`, `onPointerDownOutside` / `onEscapeKeyDown` prevented
+- Reuses the same auth logic from current `Auth.tsx` (email sign-up/in, Google OAuth)
+- Toggle between sign-in and sign-up within the modal
+- Heading style matches brand: lowercase italic "create an account." / "welcome back."
 
-create policy "Users can read own profile"
-  on public.profiles for select using (auth.uid() = id);
+**3. Update `src/App.tsx`**
+- Remove `ProtectedRoute` wrapper from the main routes — guests go straight to Dashboard
+- Keep `AuthProvider` wrapping everything (it still tracks auth state)
+- Keep `/auth` route as a fallback but default route goes directly to the app
 
-create policy "Users can update own profile"
-  on public.profiles for update using (auth.uid() = id);
+**4. Update `src/components/AppLayout.tsx`**
+- Import and render `SignUpModal` (it self-manages open state via the hook)
+- Show sign-out button only when user is authenticated
+- Optionally show a subtle "sign in" link in the header for guests who want to sign in early
 
-create function public.handle_new_user()
-returns trigger language plpgsql security definer set search_path = ''
-as $$
-begin
-  insert into public.profiles (id, display_name)
-  values (new.id, coalesce(new.raw_user_meta_data->>'full_name', new.email));
-  return new;
-end;
-$$;
+**5. Update `src/context/BudgetContext.tsx`**
+- No changes needed — it already works with localStorage regardless of auth state
 
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
+**6. Keep `src/pages/Auth.tsx`**
+- Keep as a standalone page for direct `/auth` navigation, but it's no longer the default entry
+
+### Flow
+
+```text
+Guest opens app
+  → Lands on Dashboard (localStorage data)
+  → Adds transactions freely
+  → Hits threshold (1 income + 7 expense OR 1 week)
+  → Non-dismissible modal with blurred background appears
+  → Signs up / signs in
+  → Modal closes, app continues
 ```
 
-### Frontend Changes
-
-1. **Install `@supabase/supabase-js`** and create `src/integrations/supabase/client.ts` with project URL + anon key.
-
-2. **Create `src/context/AuthContext.tsx`**
-   - Wraps `onAuthStateChange` listener (set up before `getSession`)
-   - Provides `user`, `loading`, `signOut`
-
-3. **Create `src/pages/Auth.tsx`** — the split-screen page
-   - **Left half**: Background `bg-background`, app name "safe to spend." in Lora italic, one-line tagline, minimal and warm
-   - **Right half**: White card with email/password form (login + signup toggle) and "Sign in with Google" button
-   - Uses Supabase `signInWithPassword`, `signUp`, `signInWithOAuth({ provider: 'google' })`
-   - Redirect URL set to `window.location.origin`
-
-4. **Create `src/components/ProtectedRoute.tsx`**
-   - Reads auth context; redirects to `/auth` if not logged in; shows children if authenticated
-
-5. **Update `src/App.tsx`**
-   - Wrap routes with `AuthProvider`
-   - Add `/auth` route pointing to `Auth` page
-   - Wrap existing routes in `ProtectedRoute`
-
-6. **Add sign-out button** to `AppLayout.tsx` header (small link or icon)
-
 ### Design Notes
-- Left panel: `bg-background` (#f5f3ef), centered vertically, "safe to spend." in heading font italic, a short subtitle like "know what's yours to use." in muted text
-- Right panel: `bg-card` (#fff), login form with the accent color for the primary button
-- Responsive: stacks vertically on mobile (landing on top, form below)
+- Modal overlay: `bg-black/60 backdrop-blur-md` for the frosted-glass effect
+- Modal content: same white card styling as current auth form, max-w-sm, centered
+- Brand-consistent lowercase italic headings
+- The gate only blocks further interaction — existing data in localStorage is preserved
 
-### Google OAuth Prerequisite
-The user will need to configure Google OAuth in both Google Cloud Console and Supabase Dashboard (Authentication → Providers → Google). The Supabase callback URL must be added as an authorized redirect URI in Google Cloud.
