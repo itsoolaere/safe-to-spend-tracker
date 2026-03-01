@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, List, Target } from "lucide-react";
+import { LayoutDashboard, List, Target, LogOut } from "lucide-react";
 import { useBudget } from "@/context/BudgetContext";
+import { useAuth } from "@/context/AuthContext";
 
 const baseLinks = [
 { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -10,6 +11,7 @@ const baseLinks = [
 export default function AppLayout({ children }: {children: React.ReactNode;}) {
   const location = useLocation();
   const { data } = useBudget();
+  const { signOut } = useAuth();
   const hasActiveBudgets = data.budgets.some((b) => b.limit > 0);
   const links = hasActiveBudgets ?
   [...baseLinks, { to: "/budget", label: "Budget", icon: Target }] :
@@ -22,7 +24,7 @@ export default function AppLayout({ children }: {children: React.ReactNode;}) {
           <h1 className="font-heading text-xl font-bold tracking-tight text-foreground">
             <span className="text-primary italic">Safe</span> to Spend
           </h1>
-          <nav className="hidden sm:flex gap-1">
+          <nav className="hidden sm:flex gap-1 items-center">
             {links.map((l) =>
             <NavLink
               key={l.to}
@@ -30,13 +32,17 @@ export default function AppLayout({ children }: {children: React.ReactNode;}) {
               className={({ isActive }) =>
               `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
               isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground hover:bg-secondary"}`
-
               }>
-
                 <l.icon className="w-4 h-4" />
                 {l.label}
               </NavLink>
             )}
+            <button
+              onClick={signOut}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors ml-2"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </nav>
         </div>
       </header>

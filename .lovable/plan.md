@@ -70,4 +70,3 @@ create trigger on_auth_user_created
 
 ### Google OAuth Prerequisite
 The user will need to configure Google OAuth in both Google Cloud Console and Supabase Dashboard (Authentication → Providers → Google). The Supabase callback URL must be added as an authorized redirect URI in Google Cloud.
-
