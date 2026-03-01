@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, List, Target, LogOut, LogIn } from "lucide-react";
+import { LayoutDashboard, List, Target, LogOut } from "lucide-react";
 import { useBudget } from "@/context/BudgetContext";
 import { useAuth } from "@/context/AuthContext";
 import SignUpModal from "@/components/SignUpModal";
@@ -43,21 +43,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 {l.label}
               </NavLink>
             ))}
-            {user ? (
+            {user && (
               <button
                 onClick={signOut}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors ml-2"
               >
                 <LogOut className="w-4 h-4" />
               </button>
-            ) : (
-              <NavLink
-                to="/auth"
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors ml-2"
-              >
-                <LogIn className="w-4 h-4" />
-                <span>sign in</span>
-              </NavLink>
             )}
           </nav>
         </div>
