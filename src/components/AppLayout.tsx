@@ -19,7 +19,7 @@ export default function AppLayout({ children }: {children: React.ReactNode;}) {
     <div className="min-h-screen bg-background flex flex-col">
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-30">
         <div className="container flex items-center justify-between h-16 px-4 max-w-6xl mx-auto">
-          <h1 className="font-heading text-xl font-bold tracking-tight text-foreground">safe to spend
+          <h1 className="font-heading text-xl font-bold tracking-tight text-foreground">Safe to Spend
             <span className="text-primary italic">Safe</span> to Spend
           </h1>
           <nav className="hidden sm:flex gap-1">
