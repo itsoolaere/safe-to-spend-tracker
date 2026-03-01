@@ -84,7 +84,7 @@ export default function Auth() {
             safe to spend.
           </h1>
           <p className="mt-3 text-muted-foreground font-body text-base">
-            know what's yours to use.
+            A quiet place for your money
           </p>
         </div>
       </div>
