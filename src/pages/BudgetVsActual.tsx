@@ -187,7 +187,7 @@ export default function BudgetVsActual() {
         </Card>
         <Card className="border-none shadow-sm">
           <CardContent className="pt-5 pb-4 text-center">
-            <p className="text-xs text-muted-foreground">Income Actual</p>
+            <p className="text-xs text-muted-foreground">Income Earned</p>
             <p className="my-[4px] text-base font-bold">
               {formatCurrency(totalIncomeActual)}
             </p>
