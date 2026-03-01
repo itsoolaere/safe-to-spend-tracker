@@ -5,7 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertTriangle, PlusCircle } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useSignUpGate } from "@/hooks/useSignUpGate";
@@ -56,8 +56,14 @@ export default function Dashboard() {
   const expenseTransactions = useMemo(() => filtered.filter((t) => t.type === "expense"), [filtered]);
   const incomeTransactions = useMemo(() => filtered.filter((t) => t.type === "income"), [filtered]);
 
+  const formRef = useRef<HTMLDivElement>(null);
+
+  const scrollToForm = () => {
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
   return (
-    <div className="space-y-6 pb-20 sm:pb-0">
+    <div className="space-y-6 pb-24 sm:pb-0 relative">
       {/* Date filter + Budget button */}
       <div className="flex items-center justify-between gap-3">
         <Select value={period} onValueChange={setPeriod}>
@@ -137,7 +143,9 @@ export default function Dashboard() {
 
         {/* RIGHT COLUMN - Add Form + Recent Transactions */}
         <div className="lg:col-span-2 space-y-6">
-          <AddTransactionForm />
+          <div ref={formRef}>
+            <AddTransactionForm />
+          </div>
           {!user && freeLeft < Infinity && (
             <p className="text-xs text-muted-foreground italic text-center">
               {freeLeft > 0
@@ -148,6 +156,15 @@ export default function Dashboard() {
           <RecentTransactions transactions={filtered} />
         </div>
       </div>
+
+      {/* Mobile FAB */}
+      <button
+        onClick={scrollToForm}
+        className="sm:hidden fixed bottom-20 right-4 z-20 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-95 transition-transform"
+        aria-label="Add new entry"
+      >
+        <PlusCircle className="w-6 h-6" />
+      </button>
     </div>);
 
 }
