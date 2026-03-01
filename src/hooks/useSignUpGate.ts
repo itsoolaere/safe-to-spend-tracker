@@ -7,6 +7,7 @@ export const GUEST_MAX_INCOME = 1;
 export const GUEST_MAX_EXPENSE = 7;
 
 const MANUAL_TRIGGER_EVENT = "signup-gate-manual";
+const DISMISS_EVENT = "signup-gate-dismiss";
 
 function getGuestStart(): number {
   const stored = localStorage.getItem(GUEST_START_KEY);
@@ -20,28 +21,35 @@ export function useSignUpGate() {
   const { user } = useAuth();
   const { data } = useBudget();
   const [manualTrigger, setManualTriggerState] = useState(false);
+  const [dismissed, setDismissedState] = useState(false);
 
   useEffect(() => {
-    const handler = () => setManualTriggerState(true);
-    window.addEventListener(MANUAL_TRIGGER_EVENT, handler);
-    return () => window.removeEventListener(MANUAL_TRIGGER_EVENT, handler);
+    const onManual = () => { setManualTriggerState(true); setDismissedState(false); };
+    const onDismiss = () => setDismissedState(true);
+    window.addEventListener(MANUAL_TRIGGER_EVENT, onManual);
+    window.addEventListener(DISMISS_EVENT, onDismiss);
+    return () => {
+      window.removeEventListener(MANUAL_TRIGGER_EVENT, onManual);
+      window.removeEventListener(DISMISS_EVENT, onDismiss);
+    };
   }, []);
 
-  // Reset manual trigger when user logs in
   useEffect(() => {
-    if (user) setManualTriggerState(false);
+    if (user) { setManualTriggerState(false); setDismissedState(false); }
   }, [user]);
 
   const setManualTrigger = useCallback((v: boolean) => {
-    if (v) {
-      window.dispatchEvent(new Event(MANUAL_TRIGGER_EVENT));
-    } else {
-      setManualTriggerState(false);
-    }
+    if (v) window.dispatchEvent(new Event(MANUAL_TRIGGER_EVENT));
+    else setManualTriggerState(false);
+  }, []);
+
+  const dismiss = useCallback(() => {
+    window.dispatchEvent(new Event(DISMISS_EVENT));
+    setManualTriggerState(false);
   }, []);
 
   const gateInfo = useMemo(() => {
-    if (user) return { shouldPromptSignUp: false, reason: "", freeLeft: Infinity, incomeLeft: 0, expenseLeft: 0 };
+    if (user) return { shouldPromptSignUp: false, isGateLocked: false, reason: "", freeLeft: Infinity, incomeLeft: 0, expenseLeft: 0 };
 
     const guestStart = getGuestStart();
     const weekMs = 7 * 24 * 60 * 60 * 1000;
@@ -55,17 +63,19 @@ export function useSignUpGate() {
     const expenseLeft = Math.max(0, GUEST_MAX_EXPENSE - expenseCount);
     const freeLeft = incomeLeft + expenseLeft;
 
+    const isGateLocked = expired || thresholdMet;
+
     let reason = "";
-    if (manualTrigger && !expired && !thresholdMet) {
-      reason = "";
-    } else if (expired) {
+    if (expired) {
       reason = "your free trial week has ended.";
     } else if (thresholdMet) {
       reason = `you've reached the guest limit of ${GUEST_MAX_INCOME} income and ${GUEST_MAX_EXPENSE} expense entries.`;
     }
 
-    return { shouldPromptSignUp: expired || thresholdMet || manualTrigger, reason, freeLeft, incomeLeft, expenseLeft };
-  }, [user, data.transactions, manualTrigger]);
+    const showModal = (isGateLocked && !dismissed) || manualTrigger;
 
-  return { ...gateInfo, manualTrigger, setManualTrigger };
+    return { shouldPromptSignUp: showModal, isGateLocked, reason, freeLeft, incomeLeft, expenseLeft };
+  }, [user, data.transactions, manualTrigger, dismissed]);
+
+  return { ...gateInfo, manualTrigger, setManualTrigger, dismiss };
 }

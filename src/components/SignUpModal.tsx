@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useToast } from "@/hooks/use-toast";
@@ -16,7 +17,7 @@ import {
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 
 export default function SignUpModal() {
-  const { shouldPromptSignUp, reason, manualTrigger, setManualTrigger } = useSignUpGate();
+  const { shouldPromptSignUp, reason, manualTrigger, setManualTrigger, dismiss } = useSignUpGate();
   const { toast } = useToast();
   const [isSignUp, setIsSignUp] = useState(true);
   const [email, setEmail] = useState("");
@@ -65,14 +66,21 @@ export default function SignUpModal() {
   };
 
   return (
-    <Dialog open onOpenChange={(open) => { if (!open && manualTrigger) setManualTrigger(false); }}>
+    <Dialog open onOpenChange={(open) => { if (!open) dismiss(); }}>
       <DialogPortal>
-        <DialogOverlay className="bg-black/60 backdrop-blur-md" />
+        <DialogOverlay className="bg-black/60 backdrop-blur-md" onClick={dismiss} />
         <DialogPrimitive.Content
-          onPointerDownOutside={(e) => { if (!manualTrigger) e.preventDefault(); else setManualTrigger(false); }}
-          onEscapeKeyDown={(e) => { if (!manualTrigger) e.preventDefault(); else setManualTrigger(false); }}
+          onPointerDownOutside={() => dismiss()}
+          onEscapeKeyDown={() => dismiss()}
           className="fixed left-[50%] top-[50%] z-50 w-full max-w-sm translate-x-[-50%] translate-y-[-50%] rounded-lg border bg-card p-6 shadow-lg animate-in fade-in-0 zoom-in-95"
         >
+          <button
+            onClick={dismiss}
+            className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 transition-opacity text-muted-foreground"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
           <DialogTitle className="font-heading text-xl italic font-medium text-foreground">
             {isSignUp ? "create an account." : "welcome back."}
           </DialogTitle>
