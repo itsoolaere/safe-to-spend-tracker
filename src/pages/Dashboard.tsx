@@ -127,7 +127,7 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <CategoryChart
-              title="Expenses by Category"
+              title="How I Spent"
               data={expenseByCategory}
               colors={EXPENSE_COLORS}
               transactions={expenseTransactions}
