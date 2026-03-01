@@ -98,8 +98,8 @@ export default function Auth() {
             </h2>
             <p className="text-muted-foreground text-sm mt-1">
               {isSignUp ?
-              "Sign up to start tracking." :
-              "Sign in to continue."}
+              "sign up to start tracking." :
+              "sign in to continue."}
             </p>
           </div>
 
