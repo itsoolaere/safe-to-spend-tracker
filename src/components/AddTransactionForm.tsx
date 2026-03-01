@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useImperativeHandle, forwardRef } from "react";
 import { useBudget } from "@/context/BudgetContext";
 import { useSignUpGate } from "@/hooks/useSignUpGate";
 import { formatInputAmount } from "@/lib/format";
@@ -16,10 +16,24 @@ import { PlusCircle, ChevronDown, CalendarIcon, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
-export default function AddTransactionForm() {
+export interface AddTransactionFormRef {
+  open: () => void;
+}
+
+const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransactionForm(_props, ref) {
   const { data, addTransaction, addCategory, deleteCategory } = useBudget();
   const { isGateLocked, setManualTrigger } = useSignUpGate();
   const [open, setOpen] = useState(false);
+
+  useImperativeHandle(ref, () => ({
+    open: () => {
+      if (isGateLocked) {
+        setManualTrigger(true);
+        return;
+      }
+      setOpen(true);
+    },
+  }));
   const [type, setType] = useState<TransactionType>("expense");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
@@ -207,4 +221,6 @@ export default function AddTransactionForm() {
       </Card>
     </Collapsible>
   );
-}
+});
+
+export default AddTransactionForm;

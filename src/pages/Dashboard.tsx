@@ -9,7 +9,7 @@ import { useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useSignUpGate } from "@/hooks/useSignUpGate";
-import AddTransactionForm from "@/components/AddTransactionForm";
+import AddTransactionForm, { type AddTransactionFormRef } from "@/components/AddTransactionForm";
 import CategoryChart from "@/components/CategoryChart";
 import BudgetOverviewWidget from "@/components/BudgetOverviewWidget";
 import RecentTransactions from "@/components/RecentTransactions";
@@ -57,9 +57,11 @@ export default function Dashboard() {
   const incomeTransactions = useMemo(() => filtered.filter((t) => t.type === "income"), [filtered]);
 
   const formRef = useRef<HTMLDivElement>(null);
+  const formApiRef = useRef<AddTransactionFormRef>(null);
 
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setTimeout(() => formApiRef.current?.open(), 400);
   };
 
   return (
@@ -144,7 +146,7 @@ export default function Dashboard() {
         {/* RIGHT COLUMN - Add Form + Recent Transactions */}
         <div className="lg:col-span-2 space-y-6">
           <div ref={formRef}>
-            <AddTransactionForm />
+            <AddTransactionForm ref={formApiRef} />
           </div>
           {!user && freeLeft < Infinity && (
             <p className="text-xs text-muted-foreground italic text-center">
