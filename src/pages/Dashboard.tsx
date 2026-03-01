@@ -70,7 +70,7 @@ export default function Dashboard() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-center">
         <div className="space-y-2">
-          <h1 className="font-heading text-3xl font-bold text-foreground">safe to spend.</h1>
+          <h1 className="font-heading text-3xl font-bold text-foreground">a quiet place for your money</h1>
           <p className="text-muted-foreground">start by adding your first entry below.</p>
         </div>
         <div className="w-full max-w-md">
