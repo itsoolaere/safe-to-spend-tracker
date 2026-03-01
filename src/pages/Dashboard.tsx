@@ -13,14 +13,14 @@ import BudgetOverviewWidget from "@/components/BudgetOverviewWidget";
 import RecentTransactions from "@/components/RecentTransactions";
 
 const EXPENSE_COLORS = [
-  "hsl(4, 40%, 72%)", "hsl(20, 35%, 70%)", "hsl(340, 30%, 72%)",
-  "hsl(0, 25%, 68%)", "hsl(15, 30%, 74%)", "hsl(350, 28%, 70%)",
-];
+"hsl(4, 40%, 72%)", "hsl(20, 35%, 70%)", "hsl(340, 30%, 72%)",
+"hsl(0, 25%, 68%)", "hsl(15, 30%, 74%)", "hsl(350, 28%, 70%)"];
+
 
 const INCOME_COLORS = [
-  "hsl(168, 30%, 65%)", "hsl(145, 28%, 68%)", "hsl(160, 25%, 70%)",
-  "hsl(180, 22%, 68%)", "hsl(150, 25%, 72%)", "hsl(170, 20%, 66%)",
-];
+"hsl(168, 30%, 65%)", "hsl(145, 28%, 68%)", "hsl(160, 25%, 70%)",
+"hsl(180, 22%, 68%)", "hsl(150, 25%, 72%)", "hsl(170, 20%, 66%)"];
+
 
 export default function Dashboard() {
   const { data, period, setPeriod } = useBudget();
@@ -29,28 +29,28 @@ export default function Dashboard() {
 
   const filtered = useMemo(() => {
     if (!period) return transactions;
-    return transactions.filter(t => t.date.startsWith(period));
+    return transactions.filter((t) => t.date.startsWith(period));
   }, [transactions, period]);
 
-  const totalIncome = useMemo(() => filtered.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0), [filtered]);
-  const totalExpense = useMemo(() => filtered.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0), [filtered]);
+  const totalIncome = useMemo(() => filtered.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0), [filtered]);
+  const totalExpense = useMemo(() => filtered.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0), [filtered]);
   const balance = totalIncome - totalExpense;
   const overBudget = totalExpense > totalIncome;
 
   const expenseByCategory = useMemo(() => {
     const map: Record<string, number> = {};
-    filtered.filter(t => t.type === "expense").forEach(t => { map[t.category] = (map[t.category] || 0) + t.amount; });
+    filtered.filter((t) => t.type === "expense").forEach((t) => {map[t.category] = (map[t.category] || 0) + t.amount;});
     return Object.entries(map).map(([name, amount]) => ({ name, amount })).sort((a, b) => b.amount - a.amount);
   }, [filtered]);
 
   const incomeByCategory = useMemo(() => {
     const map: Record<string, number> = {};
-    filtered.filter(t => t.type === "income").forEach(t => { map[t.category] = (map[t.category] || 0) + t.amount; });
+    filtered.filter((t) => t.type === "income").forEach((t) => {map[t.category] = (map[t.category] || 0) + t.amount;});
     return Object.entries(map).map(([name, amount]) => ({ name, amount })).sort((a, b) => b.amount - a.amount);
   }, [filtered]);
 
-  const expenseTransactions = useMemo(() => filtered.filter(t => t.type === "expense"), [filtered]);
-  const incomeTransactions = useMemo(() => filtered.filter(t => t.type === "income"), [filtered]);
+  const expenseTransactions = useMemo(() => filtered.filter((t) => t.type === "expense"), [filtered]);
+  const incomeTransactions = useMemo(() => filtered.filter((t) => t.type === "income"), [filtered]);
 
   return (
     <div className="space-y-6 pb-20 sm:pb-0">
@@ -61,9 +61,9 @@ export default function Dashboard() {
             <SelectValue placeholder="Select month" />
           </SelectTrigger>
           <SelectContent>
-            {monthOptions.map(m => (
-              <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
-            ))}
+            {monthOptions.map((m) =>
+            <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+            )}
           </SelectContent>
         </Select>
         <Button variant="outline" size="sm" asChild>
@@ -75,14 +75,14 @@ export default function Dashboard() {
       </div>
 
       {/* Warning */}
-      {overBudget && (
-        <Alert variant="destructive" className="animate-fade-in">
+      {overBudget &&
+      <Alert variant="destructive" className="animate-fade-in">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
             Your expenses ({formatCurrency(totalExpense)}) exceed your income ({formatCurrency(totalIncome)}) by {formatCurrency(totalExpense - totalIncome)}.
           </AlertDescription>
         </Alert>
-      )}
+      }
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -92,7 +92,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Card className={`border-none shadow-sm ${overBudget ? "bg-expense text-expense-foreground" : "bg-primary text-primary-foreground"}`}>
               <CardContent className="pt-6">
-                <p className="text-sm opacity-80">Balance</p>
+                <p className="text-sm opacity-80">safe to spend</p>
                 <p className="text-2xl font-heading font-bold mt-1">{formatCurrency(balance)}</p>
               </CardContent>
             </Card>
@@ -118,15 +118,15 @@ export default function Dashboard() {
               data={expenseByCategory}
               colors={EXPENSE_COLORS}
               transactions={expenseTransactions}
-              emptyMessage="No expenses yet"
-            />
+              emptyMessage="No expenses yet" />
+
             <CategoryChart
               title="Income by Category"
               data={incomeByCategory}
               colors={INCOME_COLORS}
               transactions={incomeTransactions}
-              emptyMessage="No income yet"
-            />
+              emptyMessage="No income yet" />
+
           </div>
         </div>
 
@@ -136,6 +136,6 @@ export default function Dashboard() {
           <RecentTransactions transactions={filtered} />
         </div>
       </div>
-    </div>
-  );
+    </div>);
+
 }
