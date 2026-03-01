@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { BudgetProvider } from "@/context/BudgetContext";
 import { AuthProvider } from "@/context/AuthContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
 import AppLayout from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import BudgetVsActual from "@/pages/BudgetVsActual";
@@ -22,26 +21,24 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route
-              path="/*"
-              element={
-                <ProtectedRoute>
-                  <BudgetProvider>
-                    <AppLayout>
-                      <Routes>
-                        <Route path="/" element={<Dashboard />} />
-                        <Route path="/budget" element={<BudgetVsActual />} />
-                        <Route path="/history" element={<TransactionHistory />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </AppLayout>
-                  </BudgetProvider>
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
+          <BudgetProvider>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route
+                path="/*"
+                element={
+                  <AppLayout>
+                    <Routes>
+                      <Route path="/" element={<Dashboard />} />
+                      <Route path="/budget" element={<BudgetVsActual />} />
+                      <Route path="/history" element={<TransactionHistory />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </AppLayout>
+                }
+              />
+            </Routes>
+          </BudgetProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
