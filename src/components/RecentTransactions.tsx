@@ -13,7 +13,7 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
 
   const recent = useMemo(() => {
     const base = transactions.slice(0, 10);
-    const filtered = typeFilter === "all" ? base : base.filter(t => t.type === typeFilter);
+    const filtered = typeFilter === "all" ? base : base.filter((t) => t.type === typeFilter);
     return filtered.slice(0, 5);
   }, [transactions, typeFilter]);
 
@@ -21,33 +21,33 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
     <Card className="border-none shadow-none bg-card/40 backdrop-blur-sm">
       <CardHeader className="flex-row items-center justify-between space-y-0">
         <CardTitle className="text-base font-heading">Recent Transactions</CardTitle>
-        <Link to="/history" className="text-xs text-primary hover:underline font-medium">
-          See all transactions →
+        <Link to="/history" className="text-xs text-primary hover:underline font-medium">See all entries →
+
         </Link>
       </CardHeader>
       <CardContent>
         <div className="flex gap-1 mb-4">
-          {(["all", "income", "expense"] as const).map(t => (
-            <button
-              key={t}
-              onClick={() => setTypeFilter(t)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                typeFilter === t
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-muted-foreground hover:text-foreground"
-              }`}
-            >
+          {(["all", "income", "expense"] as const).map((t) =>
+          <button
+            key={t}
+            onClick={() => setTypeFilter(t)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+            typeFilter === t ?
+            "bg-primary text-primary-foreground" :
+            "bg-secondary text-muted-foreground hover:text-foreground"}`
+            }>
+
               {t === "all" ? "All" : t === "income" ? "Income" : "Expenses"}
             </button>
-          ))}
+          )}
         </div>
 
-        {recent.length === 0 ? (
-          <p className="text-muted-foreground text-sm text-center py-8">No transactions yet</p>
-        ) : (
-          <div className="space-y-3">
-            {recent.map(t => (
-              <div key={t.id} className="flex items-center justify-between">
+        {recent.length === 0 ?
+        <p className="text-muted-foreground text-sm text-center py-8">No transactions yet</p> :
+
+        <div className="space-y-3">
+            {recent.map((t) =>
+          <div key={t.id} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className={`w-2 h-2 rounded-full ${t.type === "income" ? "bg-income" : "bg-expense"}`} />
                   <div>
@@ -59,10 +59,10 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
                   {t.type === "income" ? "+" : "-"}{formatCurrency(t.amount)}
                 </span>
               </div>
-            ))}
+          )}
           </div>
-        )}
+        }
       </CardContent>
-    </Card>
-  );
+    </Card>);
+
 }
