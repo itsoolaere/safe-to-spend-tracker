@@ -64,6 +64,22 @@ export default function Dashboard() {
     setTimeout(() => formApiRef.current?.open(), 400);
   };
 
+  const isEmptyGuest = !user && transactions.length === 0;
+
+  if (isEmptyGuest) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-center">
+        <div className="space-y-2">
+          <h1 className="font-heading text-3xl font-bold text-foreground">safe to spend.</h1>
+          <p className="text-muted-foreground">start by adding your first entry below.</p>
+        </div>
+        <div className="w-full max-w-md">
+          <AddTransactionForm />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 pb-24 sm:pb-0 relative">
       {/* Date filter + Budget button */}
