@@ -9,7 +9,6 @@ import AppLayout from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import BudgetVsActual from "@/pages/BudgetVsActual";
 import TransactionHistory from "@/pages/TransactionHistory";
-import Auth from "@/pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,7 +22,6 @@ const App = () => (
         <AuthProvider>
           <BudgetProvider>
             <Routes>
-              <Route path="/auth" element={<Auth />} />
               <Route
                 path="/*"
                 element={
