@@ -94,7 +94,7 @@ export default function Auth() {
         <div className="w-full max-w-sm space-y-6">
           <div>
             <h2 className="font-heading text-foreground text-xl italic font-medium">
-              {isSignUp ? "Create an account" : "Welcome back"}
+              {isSignUp ? "create an account" : "welcome back"}
             </h2>
             <p className="text-muted-foreground text-sm mt-1">
               {isSignUp ?
