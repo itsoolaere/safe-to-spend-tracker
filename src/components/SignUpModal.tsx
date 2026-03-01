@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -19,7 +19,12 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 export default function SignUpModal() {
   const { shouldPromptSignUp, reason, manualTrigger, setManualTrigger, dismiss } = useSignUpGate();
   const { toast } = useToast();
-  const [isSignUp, setIsSignUp] = useState(manualTrigger ? false : true);
+  const [isSignUp, setIsSignUp] = useState(true);
+
+  // When manually triggered (sign-in button), default to login form
+  useEffect(() => {
+    if (manualTrigger) setIsSignUp(false);
+  }, [manualTrigger]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
