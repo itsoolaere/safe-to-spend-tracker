@@ -29,7 +29,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <h1 className="font-heading text-xl font-bold tracking-tight text-foreground">
             <span className="text-primary italic">Safe</span> to Spend
           </h1>
-          <nav className="hidden sm:flex gap-1 items-center">
+          <nav className="hidden sm:flex gap-1 items-center [&>*]:flex [&>*]:items-center">
             {links.map((l) => (
               <Tooltip key={l.to}>
                 <TooltipTrigger asChild>
