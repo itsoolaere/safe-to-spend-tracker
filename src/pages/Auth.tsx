@@ -93,7 +93,7 @@ export default function Auth() {
       <div className="flex-1 bg-card flex items-center justify-center px-8 py-16 md:py-0">
         <div className="w-full max-w-sm space-y-6">
           <div>
-            <h2 className="font-heading text-foreground text-xl">
+            <h2 className="font-heading text-foreground text-xl italic">
               {isSignUp ? "Create an account" : "Welcome back"}
             </h2>
             <p className="text-muted-foreground text-sm mt-1">
