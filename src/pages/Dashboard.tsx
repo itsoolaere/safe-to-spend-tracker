@@ -27,7 +27,7 @@ const INCOME_COLORS = [
 export default function Dashboard() {
   const { data, period, setPeriod } = useBudget();
   const { user } = useAuth();
-  const { freeLeft, incomeLeft, expenseLeft } = useSignUpGate();
+  const { freeLeft, incomeLeft, expenseLeft, setManualTrigger } = useSignUpGate();
   const { transactions } = data;
   const monthOptions = useMemo(() => getMonthOptions(), []);
 
@@ -168,7 +168,18 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground italic text-center">
               {freeLeft > 0
                 ? `${freeLeft} free ${freeLeft === 1 ? "entry" : "entries"} left (${incomeLeft} income, ${expenseLeft} expense).`
-                : "guest limit reached."}
+                : (
+                  <>
+                    guest limit reached.{" "}
+                    <button
+                      type="button"
+                      onClick={() => setManualTrigger(true)}
+                      className="text-primary hover:underline underline-offset-2 font-medium not-italic"
+                    >
+                      sign up to continue
+                    </button>
+                  </>
+                )}
             </p>
           )}
           <RecentTransactions transactions={filtered} />

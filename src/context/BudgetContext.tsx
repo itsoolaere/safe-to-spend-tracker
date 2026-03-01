@@ -70,6 +70,11 @@ async function saveCloudData(userId: string, appData: AppData) {
     }, { onConflict: "user_id" });
 }
 
+interface PendingSync {
+  localData: AppData;
+  cloudData: AppData | null;
+}
+
 interface BudgetContextType {
   data: AppData;
   period: string;
@@ -81,6 +86,8 @@ interface BudgetContextType {
   addCategory: (type: "income" | "expense", name: string) => void;
   deleteCategory: (type: "income" | "expense", name: string) => void;
   syncing: boolean;
+  pendingSync: PendingSync | null;
+  confirmSync: (merge: boolean) => void;
 }
 
 const BudgetContext = createContext<BudgetContextType | null>(null);
@@ -90,8 +97,36 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<AppData>(loadData);
   const [period, setPeriod] = useState(getCurrentMonth);
   const [syncing, setSyncing] = useState(false);
+  const [pendingSync, setPendingSync] = useState<PendingSync | null>(null);
   const hasSynced = useRef(false);
   const saveTimeout = useRef<ReturnType<typeof setTimeout>>();
+
+  const confirmSync = useCallback(async (merge: boolean) => {
+    if (!pendingSync || !user) return;
+    setSyncing(true);
+    try {
+      const { localData, cloudData } = pendingSync;
+      let finalData: AppData;
+
+      if (merge && cloudData) {
+        finalData = mergeData(localData, cloudData);
+        await saveCloudData(user.id, finalData);
+      } else if (merge && !cloudData) {
+        finalData = localData;
+        await saveCloudData(user.id, finalData);
+      } else if (cloudData) {
+        finalData = cloudData;
+      } else {
+        finalData = { transactions: [], categories: { ...DEFAULT_CATEGORIES }, budgets: [] };
+      }
+
+      setData(finalData);
+      saveData(finalData);
+    } finally {
+      setPendingSync(null);
+      setSyncing(false);
+    }
+  }, [pendingSync, user]);
 
   // Persist to cloud with debounce for authenticated users
   const persistToCloud = useCallback((newData: AppData) => {
@@ -112,7 +147,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     });
   }, [persistToCloud]);
 
-  // Sync on sign-in: merge local data with cloud, push merged result
+  // Sync on sign-in: if guest has local data, ask before merging
   useEffect(() => {
     if (!user || hasSynced.current) return;
     hasSynced.current = true;
@@ -122,20 +157,20 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       try {
         const localData = loadData();
         const cloudData = await loadCloudData(user.id);
+        const hasLocalData = localData.transactions.length > 0;
 
+        if (hasLocalData) {
+          // Guest has data — ask before syncing
+          setPendingSync({ localData, cloudData });
+          setSyncing(false);
+          return;
+        }
+
+        // No guest data — just load cloud or start fresh
         if (cloudData) {
-          // Merge local guest data into existing cloud data
-          const hasLocalData = localData.transactions.length > 0;
-          const merged = hasLocalData ? mergeData(localData, cloudData) : cloudData;
-
-          if (hasLocalData) {
-            await saveCloudData(user.id, merged);
-          }
-
-          setData(merged);
-          saveData(merged); // sync localStorage too
+          setData(cloudData);
+          saveData(cloudData);
         } else {
-          // First sign-in: push local data to cloud
           await saveCloudData(user.id, localData);
         }
       } catch (e) {
@@ -187,7 +222,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   }, [updateData]);
 
   return (
-    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, syncing }}>
+    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, syncing, pendingSync, confirmSync }}>
       {children}
     </BudgetContext.Provider>
   );
