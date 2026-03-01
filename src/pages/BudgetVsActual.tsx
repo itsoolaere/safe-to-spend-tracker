@@ -169,7 +169,7 @@ export default function BudgetVsActual() {
         <Card className="border-none shadow-sm">
           <CardContent className="pt-5 pb-4 text-center">
             <p className="text-xs text-muted-foreground">Expense Spent</p>
-            <p className={`text-lg font-heading font-bold mt-1 ${totalExpenseSpent > totalExpenseBudget && totalExpenseBudget > 0 ? "text-expense" : ""}`}>
+            <p className="text-base my-[4px] font-bold">
               {formatCurrency(totalExpenseSpent)}
             </p>
           </CardContent>
@@ -183,7 +183,7 @@ export default function BudgetVsActual() {
         <Card className="border-none shadow-sm">
           <CardContent className="pt-5 pb-4 text-center">
             <p className="text-xs text-muted-foreground">Income Actual</p>
-            <p className={`text-lg font-heading font-bold mt-1 ${totalIncomeActual >= totalIncomeBudget && totalIncomeBudget > 0 ? "text-income" : ""}`}>
+            <p className="my-[4px] text-base font-bold">
               {formatCurrency(totalIncomeActual)}
             </p>
           </CardContent>
@@ -199,8 +199,8 @@ export default function BudgetVsActual() {
         </Card> :
 
       <div className="space-y-6">
-          <BudgetTable type="expense" label="Expense Budgets" budgets={expenseBudgets} actuals={monthlyExpenses} transactions={data.transactions.filter(t => t.date.startsWith(period))} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("expense")} />
-          <BudgetTable type="income" label="Income Budgets" budgets={incomeBudgets} actuals={monthlyIncome} transactions={data.transactions.filter(t => t.date.startsWith(period))} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("income")} />
+          <BudgetTable type="expense" label="Expense Budgets" budgets={expenseBudgets} actuals={monthlyExpenses} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("expense")} />
+          <BudgetTable type="income" label="Income Budgets" budgets={incomeBudgets} actuals={monthlyIncome} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("income")} />
         </div>
       }
     </div>);
