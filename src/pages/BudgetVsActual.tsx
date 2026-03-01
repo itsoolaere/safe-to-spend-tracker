@@ -94,7 +94,7 @@ export default function BudgetVsActual() {
           </Button>
           <div>
             <h2 className="font-heading text-2xl font-bold tracking-tight">Budget</h2>
-            <p className="text-muted-foreground text-sm mt-0.5">Plan your money</p>
+            <p className="text-muted-foreground text-sm mt-0.5">Plan my money</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
