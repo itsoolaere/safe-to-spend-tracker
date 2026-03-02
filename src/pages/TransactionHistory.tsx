@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import TrendsView from "@/components/TrendsView";
 
 export default function TransactionHistory() {
   const { data, deleteTransaction, updateTransaction, period, setPeriod } = useBudget();
@@ -62,8 +64,7 @@ export default function TransactionHistory() {
     <div className="space-y-6 pb-20 sm:pb-0">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h2 className="font-heading text-2xl font-bold tracking-tight">Transaction History</h2>
-          <p className="text-muted-foreground text-sm mt-1">{filtered.length} transactions</p>
+          <h2 className="font-heading text-2xl font-bold tracking-tight">Journal</h2>
         </div>
         <Select value={period} onValueChange={setPeriod}>
           <SelectTrigger className="w-[180px]">
@@ -76,6 +77,15 @@ export default function TransactionHistory() {
           </SelectContent>
         </Select>
       </div>
+
+      <Tabs defaultValue="entries" className="w-full">
+        <TabsList className="w-full max-w-xs">
+          <TabsTrigger value="entries" className="flex-1">Entries</TabsTrigger>
+          <TabsTrigger value="trends" className="flex-1">Trends</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="entries">
+          <div className="space-y-4 mt-2">
 
       {/* Type filter + Totals */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -142,6 +152,13 @@ export default function TransactionHistory() {
           ))}
         </div>
       )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="trends">
+          <TrendsView />
+        </TabsContent>
+      </Tabs>
 
       {/* Edit Dialog */}
       <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
