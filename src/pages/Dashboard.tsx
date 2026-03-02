@@ -13,6 +13,8 @@ import AddTransactionForm, { type AddTransactionFormRef } from "@/components/Add
 import CategoryChart from "@/components/CategoryChart";
 import BudgetOverviewWidget from "@/components/BudgetOverviewWidget";
 import RecentTransactions from "@/components/RecentTransactions";
+import QuickTip from "@/components/QuickTip";
+import type { TipState } from "@/lib/tips";
 
 const EXPENSE_COLORS = [
 "hsl(4, 40%, 72%)", "hsl(20, 35%, 70%)", "hsl(340, 30%, 72%)",
@@ -63,6 +65,12 @@ export default function Dashboard() {
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     setTimeout(() => formApiRef.current?.open(), 400);
   };
+
+  const tipState = useMemo<TipState>(() => ({
+    totalIncome, totalExpense, balance,
+    expenseByCategory, budgets: data.budgets,
+    transactionCount: filtered.length, period,
+  }), [totalIncome, totalExpense, balance, expenseByCategory, data.budgets, filtered.length, period]);
 
   const isEmptyGuest = !user && transactions.length === 0;
 
@@ -182,6 +190,7 @@ export default function Dashboard() {
             }
             </p>
           }
+          <QuickTip state={tipState} />
           <RecentTransactions transactions={filtered} />
         </div>
       </div>
