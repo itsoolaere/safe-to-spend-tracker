@@ -61,13 +61,11 @@ export default function TransactionHistory() {
   };
 
   return (
-    <div className="space-y-6 pb-20 sm:pb-0">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div>
-          <h2 className="font-heading text-2xl font-bold tracking-tight">Journal</h2>
-        </div>
+    <div className="space-y-4 pb-20 sm:pb-0">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="font-heading text-xl font-bold tracking-tight">Journal</h2>
         <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[140px] text-xs h-9">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -79,22 +77,22 @@ export default function TransactionHistory() {
       </div>
 
       <Tabs defaultValue="entries" className="w-full">
-        <TabsList className="w-full max-w-xs">
-          <TabsTrigger value="entries" className="flex-1">Entries</TabsTrigger>
-          <TabsTrigger value="trends" className="flex-1">Trends</TabsTrigger>
+        <TabsList className="w-full max-w-xs h-9">
+          <TabsTrigger value="entries" className="flex-1 text-xs">Entries</TabsTrigger>
+          <TabsTrigger value="trends" className="flex-1 text-xs">Trends</TabsTrigger>
         </TabsList>
 
         <TabsContent value="entries">
-          <div className="space-y-4 mt-2">
+          <div className="space-y-3 mt-1">
 
       {/* Type filter + Totals */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex gap-1">
           {(["all", "income", "expense"] as const).map(t => (
             <button
               key={t}
               onClick={() => setTypeFilter(t)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-colors ${
                 typeFilter === t
                   ? "bg-primary text-primary-foreground"
                   : "bg-secondary text-muted-foreground hover:text-foreground"
@@ -104,10 +102,10 @@ export default function TransactionHistory() {
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-3 text-xs">
           <span className="text-income font-medium">+{formatCurrency(totalIncome)}</span>
           <span className="text-expense font-medium">-{formatCurrency(totalExpense)}</span>
-          <span className={`font-heading font-bold ${netTotal >= 0 ? "text-income" : "text-expense"}`}>
+          <span className={`font-heading font-semibold ${netTotal >= 0 ? "text-income" : "text-expense"}`}>
             Net: {formatCurrency(netTotal)}
           </span>
         </div>
