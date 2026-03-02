@@ -89,6 +89,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
+      <footer className="border-t py-4 text-center text-xs text-muted-foreground sm:mb-0 mb-14">
+        created by{" "}
+        <a href="https://itsoolaere.studio" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline underline-offset-2">Olaere</a>
+        {" · "}
+        <a href="https://www.instagram.com/itsoolaere" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline underline-offset-2">Instagram</a>
+      </footer>
+
       {/* Mobile bottom nav */}
       <nav className="sm:hidden fixed bottom-0 inset-x-0 bg-card border-t z-30 pb-safe">
         <div className="flex justify-around py-2">
