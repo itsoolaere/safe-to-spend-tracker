@@ -103,7 +103,7 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
                     key={t}
                     type="button"
                     onClick={() => { setType(t); setCategory(""); }}
-                    className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
+                    className={`flex-1 py-2 rounded-md text-xs font-medium transition-all ${
                       type === t
                         ? t === "income"
                           ? "bg-income text-income-foreground shadow-sm"
@@ -122,7 +122,7 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">₦</span>
                     <Input
-                      className="pl-7 font-heading font-semibold"
+                      className="pl-7 font-heading font-semibold text-sm"
                       placeholder="0"
                       value={amount}
                       onChange={e => setAmount(formatInputAmount(e.target.value))}
@@ -140,10 +140,10 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
                   {showNewCat && (
                     <div className="flex gap-2 animate-fade-in">
                       <Input
-                        placeholder="Category name"
-                        value={newCategory}
-                        onChange={e => setNewCategory(e.target.value)}
-                        className="text-sm"
+                    placeholder="Category name"
+                    value={newCategory}
+                    onChange={e => setNewCategory(e.target.value)}
+                    className="text-xs"
                       />
                       <Button type="button" size="sm" onClick={handleAddCategory}>Add</Button>
                     </div>
@@ -205,14 +205,15 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
                   <Label className="text-xs">note (optional)</Label>
                   <Input
                     placeholder="What was this for?"
+                    className="text-xs"
                     value={description}
                     onChange={e => setDescription(e.target.value)}
                   />
                 </div>
               </div>
 
-              <Button type="submit" className="w-full">
-                <PlusCircle className="w-4 h-4 mr-2" />
+              <Button type="submit" className="w-full text-xs">
+                <PlusCircle className="w-3.5 h-3.5 mr-1.5" />
                 Add Entry
               </Button>
             </form>
