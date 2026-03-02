@@ -91,9 +91,9 @@ export default function TrendsView() {
     ...categories.expense.map(c => ({ name: c, type: "expense" as const })),
   ], [categories]);
 
-  const [selected, setSelected] = useState<Set<string>>(() => new Set(allCategories.map(c => c.name)));
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [chartType, setChartType] = useState<ChartType>("line");
-  const [timeRange, setTimeRange] = useState<TimeRange>("6M");
+  const [timeRange, setTimeRange] = useState<TimeRange>("3M");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
   const [drillDown, setDrillDown] = useState<DrillDownData | null>(null);
@@ -172,28 +172,54 @@ export default function TrendsView() {
   return (
     <div className="space-y-5">
       {/* Category selector */}
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Categories</p>
-        <div className="flex flex-wrap gap-1.5">
-          {allCategories.map(cat => {
-            const isSelected = selected.has(cat.name);
-            const color = colorMap[cat.name];
-            return (
-              <button
-                key={cat.name}
-                onClick={() => toggleCategory(cat.name)}
-                className="px-2.5 py-1 rounded-full text-xs font-medium transition-all border"
-                style={{
-                  backgroundColor: isSelected ? color : "transparent",
-                  borderColor: color,
-                  color: isSelected ? "#fff" : color,
-                  opacity: isSelected ? 1 : 0.6,
-                }}
-              >
-                {cat.name}
-              </button>
-            );
-          })}
+      <div className="space-y-3">
+        <div className="space-y-1.5">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Income</p>
+          <div className="flex flex-wrap gap-1.5">
+            {allCategories.filter(c => c.type === "income").map(cat => {
+              const isSelected = selected.has(cat.name);
+              const color = colorMap[cat.name];
+              return (
+                <button
+                  key={cat.name}
+                  onClick={() => toggleCategory(cat.name)}
+                  className="px-2.5 py-1 rounded-full text-xs font-medium transition-all border"
+                  style={{
+                    backgroundColor: isSelected ? color : "transparent",
+                    borderColor: color,
+                    color: isSelected ? "#fff" : color,
+                    opacity: isSelected ? 1 : 0.6,
+                  }}
+                >
+                  {cat.name}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Expense</p>
+          <div className="flex flex-wrap gap-1.5">
+            {allCategories.filter(c => c.type === "expense").map(cat => {
+              const isSelected = selected.has(cat.name);
+              const color = colorMap[cat.name];
+              return (
+                <button
+                  key={cat.name}
+                  onClick={() => toggleCategory(cat.name)}
+                  className="px-2.5 py-1 rounded-full text-xs font-medium transition-all border"
+                  style={{
+                    backgroundColor: isSelected ? color : "transparent",
+                    borderColor: color,
+                    color: isSelected ? "#fff" : color,
+                    opacity: isSelected ? 1 : 0.6,
+                  }}
+                >
+                  {cat.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
