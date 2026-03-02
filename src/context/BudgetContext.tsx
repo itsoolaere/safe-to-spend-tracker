@@ -203,6 +203,9 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
 
   const addTransaction = useCallback((t: Omit<Transaction, "id">) => {
     updateData(prev => addTx(prev, t));
+    // Auto-switch the period filter to match the transaction's month
+    const txMonth = t.date.slice(0, 7); // "YYYY-MM"
+    setPeriod(txMonth);
   }, [updateData]);
 
   const deleteTransaction = useCallback((id: string) => {
