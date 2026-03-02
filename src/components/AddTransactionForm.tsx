@@ -120,9 +120,9 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
                 <div className="space-y-2">
                   <Label className="text-xs">Amount</Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm">₦</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-xs">₦</span>
                     <Input
-                      className="pl-7 font-heading font-semibold text-sm"
+                      className="pl-6 font-heading font-semibold text-xs"
                       placeholder="0"
                       value={amount}
                       onChange={e => setAmount(formatInputAmount(e.target.value))}
