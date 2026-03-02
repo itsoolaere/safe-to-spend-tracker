@@ -90,11 +90,11 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6 pb-24 sm:pb-0 relative">
+    <div className="space-y-4 pb-24 sm:pb-0 relative">
       {/* Date filter + Budget button */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-2">
         <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[140px] text-xs h-9">
             <SelectValue placeholder="Select month" />
           </SelectTrigger>
           <SelectContent>
@@ -103,9 +103,9 @@ export default function Dashboard() {
             )}
           </SelectContent>
         </Select>
-        <Button variant="outline" size="sm" asChild>
+        <Button variant="outline" size="sm" className="h-9 text-xs" asChild>
           <Link to="/budget">
-            <PlusCircle className="w-4 h-4 mr-1" />
+            <PlusCircle className="w-3.5 h-3.5 mr-1" />
             Budget
           </Link>
         </Button>
@@ -115,34 +115,34 @@ export default function Dashboard() {
       {overBudget &&
       <Alert variant="destructive" className="animate-fade-in">
           <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
+          <AlertDescription className="text-xs">
             Your expenses ({formatCurrency(totalExpense)}) exceed your income ({formatCurrency(totalIncome)}) by {formatCurrency(totalExpense - totalIncome)}.
           </AlertDescription>
         </Alert>
       }
 
       {/* Two-column layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
         {/* LEFT COLUMN - Summary + Charts */}
-        <div className="lg:col-span-3 space-y-6">
+        <div className="lg:col-span-3 space-y-4 sm:space-y-6">
           {/* Summary cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Card className={`border-none shadow-sm ${overBudget ? "bg-expense text-expense-foreground" : "bg-primary text-primary-foreground"}`}>
-              <CardContent className="pt-6">
-                <p className="text-sm opacity-80">safe to spend</p>
-                <p className="font-heading font-bold mt-1 text-xl">{formatCurrency(balance)}</p>
+              <CardContent className="pt-4 pb-3">
+                <p className="text-xs opacity-80">safe to spend</p>
+                <p className="font-heading font-bold mt-0.5 text-lg">{formatCurrency(balance)}</p>
               </CardContent>
             </Card>
             <Card className="border-none shadow-sm">
-              <CardContent className="pt-6">
-                <p className="text-sm text-muted-foreground">Income</p>
-                <p className="font-heading font-bold text-income mt-1 text-xl">{formatCurrency(totalIncome)}</p>
+              <CardContent className="pt-4 pb-3">
+                <p className="text-xs text-muted-foreground">Income</p>
+                <p className="font-heading font-bold text-income mt-0.5 text-lg">{formatCurrency(totalIncome)}</p>
               </CardContent>
             </Card>
             <Card className="border-none shadow-sm">
-              <CardContent className="pt-6">
-                <p className="text-sm text-muted-foreground">Expenses</p>
-                <p className="font-heading font-bold text-expense mt-1 text-xl">{formatCurrency(totalExpense)}</p>
+              <CardContent className="pt-4 pb-3">
+                <p className="text-xs text-muted-foreground">Expenses</p>
+                <p className="font-heading font-bold text-expense mt-0.5 text-lg">{formatCurrency(totalExpense)}</p>
               </CardContent>
             </Card>
           </div>
@@ -169,7 +169,7 @@ export default function Dashboard() {
         </div>
 
         {/* RIGHT COLUMN - Add Form + Recent Transactions */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           <div ref={formRef}>
             <AddTransactionForm ref={formApiRef} />
           </div>
