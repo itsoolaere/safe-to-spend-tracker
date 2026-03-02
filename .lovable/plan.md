@@ -1,43 +1,49 @@
 
 
-## Problem
+## Quick Tips: context-aware financial nudges
 
-When a guest signs up and confirms their email, their data is lost. The root cause is the sign-out cleanup effect in `BudgetContext.tsx` (lines 187-198):
+### Concept
+A small, subtle tip card that rotates through contextual advice based on the user's current financial state. Placed in the **right column** between the entry form and Recent Entries — it fits the journaling tone and doesn't clutter the main summary area.
 
-```ts
-useEffect(() => {
-  if (!user) {
-    // This runs on EVERY page load before the session is restored
-    setData(empty);
-    saveData(empty); // ← wipes localStorage
-  }
-}, [user]);
+### Tip Logic
+A pure function `getFinancialTip()` that evaluates the user's current state and returns an appropriate tip. Tips are selected based on priority (first matching condition wins):
+
+| Condition | Example Tip |
+|---|---|
+| No transactions yet | "start with one entry. even ₦50 counts." |
+| Expenses > Income (overspending) | "you're spending more than you earn this month. review your top category." |
+| Top expense category > 50% of total | "most of your money is going to {category}. is that intentional?" |
+| No income logged this month | "no income recorded yet. add what came in to see the full picture." |
+| No budgets set | "try setting a budget — it helps you notice patterns." |
+| Balance > 0, healthy | "you have {amount} safe to spend. nice." |
+| Has budgets, one is > 80% used | "{category} budget is almost used up. tread carefully." |
+| Fallback / variety | Random from a pool of general tips like "small consistent tracking beats perfect records." |
+
+Tips rotate on each page load (or every 30s) by picking from all matching conditions.
+
+### File Changes
+
+**1. New file: `src/lib/tips.ts`**
+- Export `getFinancialTips(state)` — takes totals, top categories, budgets, transaction count — returns array of matching tip strings.
+- Export `pickTip(tips)` — picks one randomly or cycles.
+
+**2. New component: `src/components/QuickTip.tsx`**
+- Small card with a subtle style (muted background, italic text, lowercase — matching the journaling tone).
+- Uses `useMemo` to compute matching tips from dashboard data, `useState` to pick one on mount.
+- A small refresh icon button to cycle to the next tip.
+- Lightweight Lightbulb icon from lucide.
+
+**3. Edit: `src/pages/Dashboard.tsx`**
+- Import `QuickTip` and place it in the right column, between the guest-limit message and `RecentTransactions`.
+- Pass the needed financial state props: `totalIncome`, `totalExpense`, `balance`, `expenseByCategory`, `budgets`, `transactionCount`.
+
+### Visual Style
 ```
-
-On page reload (after email confirmation), `user` starts as `null` while the session is being restored. This effect fires immediately, wiping localStorage. By the time the session loads and `user` becomes non-null, the sync effect finds no local data to merge.
-
-## Fix
-
-**File: `src/context/BudgetContext.tsx`**
-
-Track whether the user was previously authenticated using a ref (`wasAuthenticated`). Only clear data when the user transitions from authenticated → unauthenticated (actual sign-out), not on initial page load when user is still `null` because the session hasn't loaded yet.
-
-```ts
-const wasAuthenticated = useRef(false);
-
-useEffect(() => {
-  if (user) {
-    wasAuthenticated.current = true;
-  } else if (wasAuthenticated.current) {
-    // User was logged in and is now null → actual sign-out
-    wasAuthenticated.current = false;
-    hasSynced.current = false;
-    const empty: AppData = { transactions: [], categories: { ...DEFAULT_CATEGORIES }, budgets: [] };
-    setData(empty);
-    saveData(empty);
-  }
-}, [user]);
+┌──────────────────────────────┐
+│ 💡  most of your money is    │
+│     going to food. is that   │
+│     intentional?         ↻   │
+└──────────────────────────────┘
 ```
-
-This single change preserves guest localStorage data through the signup → email confirmation → redirect flow, while still clearing data on explicit sign-out.
+Muted background (`bg-muted/50`), small italic text, rounded corners, blends with the dashboard's calm aesthetic.
 
