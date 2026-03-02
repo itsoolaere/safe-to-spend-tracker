@@ -93,7 +93,7 @@ export default function BudgetVsActual() {
             <Link to="/"><ArrowLeft className="w-4 h-4" /></Link>
           </Button>
           <div>
-            <h2 className="font-heading text-2xl font-bold tracking-tight">Budget</h2>
+            <h2 className="font-heading font-bold tracking-tight text-lg">Budget</h2>
             <p className="text-muted-foreground text-sm mt-0.5">Plan my money</p>
           </div>
         </div>
