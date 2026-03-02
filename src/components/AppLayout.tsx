@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, List, Target, LogOut, LogIn } from "lucide-react";
+import { LayoutDashboard, List, Target, LogOut, LogIn, Globe, Instagram } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useBudget } from "@/context/BudgetContext";
 import { useAuth } from "@/context/AuthContext";
@@ -89,11 +89,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
-      <footer className="border-t py-4 text-center text-xs text-muted-foreground sm:mb-0 mb-14">
-        created by{" "}
-        <a href="https://itsoolaere.studio" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline underline-offset-2">Olaere</a>
-        {" · "}
-        <a href="https://www.instagram.com/itsoolaere" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline underline-offset-2">Instagram</a>
+      <footer className="border-t py-3 sm:mb-0 mb-14">
+        <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
+          <span>created by Olaere</span>
+          <a href="https://itsoolaere.studio" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Website">
+            <Globe className="w-3.5 h-3.5" />
+          </a>
+          <a href="https://www.instagram.com/itsoolaere" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Instagram">
+            <Instagram className="w-3.5 h-3.5" />
+          </a>
+        </div>
       </footer>
 
       {/* Mobile bottom nav */}
