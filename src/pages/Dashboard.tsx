@@ -12,6 +12,7 @@ import { useSignUpGate } from "@/hooks/useSignUpGate";
 import AddTransactionForm, { type AddTransactionFormRef } from "@/components/AddTransactionForm";
 import CategoryChart from "@/components/CategoryChart";
 import BudgetOverviewWidget from "@/components/BudgetOverviewWidget";
+import CategoryManager from "@/components/CategoryManager";
 import RecentTransactions from "@/components/RecentTransactions";
 import QuickTip from "@/components/QuickTip";
 import type { TipState } from "@/lib/tips";
@@ -190,6 +191,7 @@ export default function Dashboard() {
             }
             </p>
           }
+          <CategoryManager />
           <QuickTip state={tipState} />
           <RecentTransactions transactions={filtered} />
         </div>
