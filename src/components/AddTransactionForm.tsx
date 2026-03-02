@@ -133,8 +133,8 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs">Category</Label>
-                    <button type="button" onClick={() => setShowNewCat(!showNewCat)} className="text-xs text-primary hover:underline">
-                      + New
+                    <button type="button" onClick={() => { setShowNewCat(!showNewCat); setNewCategory(""); }} className="text-xs text-primary hover:underline">
+                      {showNewCat ? "Cancel" : "+ New"}
                     </button>
                   </div>
                   {showNewCat && (
