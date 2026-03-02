@@ -70,14 +70,14 @@ export default function Dashboard() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-center">
         <div className="space-y-2">
-          <h1 className="font-heading text-3xl font-bold text-foreground">a quiet place for your money</h1>
+          
           <p className="text-muted-foreground">start by adding your first entry below.</p>
         </div>
         <div className="w-full max-w-md">
           <AddTransactionForm />
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -164,24 +164,24 @@ export default function Dashboard() {
           <div ref={formRef}>
             <AddTransactionForm ref={formApiRef} />
           </div>
-          {!user && freeLeft < Infinity && (
-            <p className="text-xs text-muted-foreground italic text-center">
-              {freeLeft > 0
-                ? `${freeLeft} free ${freeLeft === 1 ? "entry" : "entries"} left (${incomeLeft} income, ${expenseLeft} expense).`
-                : (
-                  <>
+          {!user && freeLeft < Infinity &&
+          <p className="text-xs text-muted-foreground italic text-center">
+              {freeLeft > 0 ?
+            `${freeLeft} free ${freeLeft === 1 ? "entry" : "entries"} left (${incomeLeft} income, ${expenseLeft} expense).` :
+
+            <>
                     guest limit reached.{" "}
                     <button
-                      type="button"
-                      onClick={() => setManualTrigger(true)}
-                      className="text-primary hover:underline underline-offset-2 font-medium not-italic"
-                    >
+                type="button"
+                onClick={() => setManualTrigger(true)}
+                className="text-primary hover:underline underline-offset-2 font-medium not-italic">
+                
                       sign up to continue
                     </button>
                   </>
-                )}
+            }
             </p>
-          )}
+          }
           <RecentTransactions transactions={filtered} />
         </div>
       </div>
@@ -190,8 +190,8 @@ export default function Dashboard() {
       <button
         onClick={scrollToForm}
         className="sm:hidden fixed bottom-20 right-4 z-20 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center active:scale-95 transition-transform"
-        aria-label="Add new entry"
-      >
+        aria-label="Add new entry">
+        
         <PlusCircle className="w-6 h-6" />
       </button>
     </div>);
