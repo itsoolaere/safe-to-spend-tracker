@@ -160,7 +160,7 @@ export default function TransactionHistory() {
 
       {/* Edit Dialog */}
       <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
-        <DialogContent>
+        <DialogContent className="w-[calc(100%-2rem)] max-w-md rounded-xl">
           <DialogHeader>
             <DialogTitle>Edit Transaction</DialogTitle>
           </DialogHeader>
