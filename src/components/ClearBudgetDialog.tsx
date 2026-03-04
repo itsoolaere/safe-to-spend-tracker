@@ -48,7 +48,7 @@ export default function ClearBudgetDialog() {
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction onClick={handleClear} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-            Clear
+            Reset
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
