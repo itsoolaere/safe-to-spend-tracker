@@ -147,6 +147,7 @@ export default function Dashboard() {
             </Card>
           </div>
 
+          <QuickTip state={tipState} />
 
           <BudgetOverviewWidget budgets={data.budgets} transactions={transactions} period={period} />
 
@@ -192,7 +193,6 @@ export default function Dashboard() {
             </p>
           }
           <CategoryManager />
-          <QuickTip state={tipState} />
           <RecentTransactions transactions={filtered} />
         </div>
       </div>
