@@ -1,32 +1,23 @@
 
 
-## Add "Reset / Clear Transactions" feature
+## Add Clear Budgets + Conditional Budget Nav Icon
 
-### Overview
-Add an AlertDialog-based reset flow accessible from the Dashboard. The user picks a scope — all time, a specific month, or a specific date — then confirms deletion. Transactions matching the scope are removed from state, localStorage, and cloud.
+### Two changes:
 
-### UI Design
-- Add a small "Clear data" button (ghost/outline, with `Trash2` icon) next to the Budget button in the Dashboard header bar.
-- Clicking it opens an AlertDialog with three radio options:
-  1. **All transactions** — clears everything
-  2. **This month** (pre-filled with the current period filter, e.g. "Feb 2026")
-  3. **Specific date** — shows a date input when selected
-- A destructive "Clear" confirmation button and a "Cancel" button in the dialog footer.
+**1. Add a "Clear budgets" action to the Budget page (`src/pages/BudgetVsActual.tsx`)**
 
-### Changes
+- Add a `clearBudgets` function to `BudgetContext` that works similarly to `clearTransactions` but operates on `data.budgets`. Accepts `{ mode: "all" | "month", value?: string }`.
+  - `"all"` → removes all budgets
+  - `"month"` → removes budgets where `b.month === value`
+- Create a `ClearBudgetDialog` component (or extend `ClearDataDialog` with a `target` prop) using an AlertDialog with two radio options: "All budgets" and "This month's budgets".
+- Place the clear button in the Budget page header next to the Save button.
 
-**1. `src/context/BudgetContext.tsx`**
-- Add a `clearTransactions(scope)` function to the context that accepts `{ mode: "all" | "month" | "date", value?: string }`.
-- Filters out matching transactions from `data.transactions` using date prefix matching (`"all"` = clear all, `"month"` = match `YYYY-MM`, `"date"` = match `YYYY-MM-DD`).
-- Persists via `saveData` + `persistToCloud`.
-- Expose `clearTransactions` in the context value and type.
+**2. Hide the Budget nav icon when no budgets exist (`src/components/AppLayout.tsx`)**
 
-**2. `src/pages/Dashboard.tsx`**
-- Import `Trash2` icon and AlertDialog components.
-- Add state for dialog open, selected mode, and date value.
-- Render a ghost button in the header row that opens the dialog.
-- Dialog contains radio group (all / month / date) with conditional date picker.
-- On confirm, calls `clearTransactions(scope)` and closes dialog with a toast.
+- Currently the Budget link is shown when `hasActiveBudgets` is true (`data.budgets.some(b => b.limit > 0)`). This already hides the icon when no budgets exist. No change needed here — the existing logic already handles this. After clearing all budgets, the nav icon will automatically disappear.
 
-### No database migration needed — transactions are stored as JSON inside `user_app_data.data`.
+### Files to change:
+- **`src/context/BudgetContext.tsx`** — Add `clearBudgets(scope)` to context, expose it.
+- **New: `src/components/ClearBudgetDialog.tsx`** — AlertDialog with "all" / "this month" radio options, calls `clearBudgets`.
+- **`src/pages/BudgetVsActual.tsx`** — Import and render `ClearBudgetDialog` in the header area.
 
