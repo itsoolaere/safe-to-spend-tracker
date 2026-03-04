@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Save, Plus, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import BudgetTable from "@/components/BudgetTable";
+import ClearBudgetDialog from "@/components/ClearBudgetDialog";
 
 export default function BudgetVsActual() {
   const { data, updateBudgets, period, setPeriod } = useBudget();
@@ -113,6 +114,7 @@ export default function BudgetVsActual() {
               <Save className="w-4 h-4 mr-1" /> Save
             </Button>
           }
+          {hasAnyBudgets && <ClearBudgetDialog />}
         </div>
       </div>
 
