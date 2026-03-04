@@ -55,7 +55,7 @@ export default function ClearDataDialog() {
       <AlertDialogTrigger asChild>
         <Button variant="ghost" size="sm" className="h-9 text-xs text-muted-foreground">
           <Trash2 className="w-3.5 h-3.5 mr-1" />
-          Clear
+          Reset
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
