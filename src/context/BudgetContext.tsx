@@ -88,6 +88,7 @@ interface BudgetContextType {
   addCategory: (type: "income" | "expense", name: string) => void;
   deleteCategory: (type: "income" | "expense", name: string) => void;
   clearTransactions: (scope: ClearScope) => void;
+  clearBudgets: (scope: { mode: "all" | "month"; value?: string }) => void;
   syncing: boolean;
   pendingSync: PendingSync | null;
   confirmSync: (merge: boolean) => void;
@@ -249,8 +250,21 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     });
   }, [updateData]);
 
+  const clearBudgets = useCallback((scope: { mode: "all" | "month"; value?: string }) => {
+    updateData(prev => {
+      let kept = prev.budgets;
+      if (scope.mode === "all") kept = [];
+      else if (scope.mode === "month" && scope.value) {
+        kept = prev.budgets.filter(b => b.month !== scope.value);
+      }
+      const next = { ...prev, budgets: kept };
+      saveData(next);
+      return next;
+    });
+  }, [updateData]);
+
   return (
-    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, clearTransactions, syncing, pendingSync, confirmSync }}>
+    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, clearTransactions, clearBudgets, syncing, pendingSync, confirmSync }}>
       {children}
     </BudgetContext.Provider>
   );
