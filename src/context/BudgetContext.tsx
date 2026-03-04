@@ -75,6 +75,8 @@ interface PendingSync {
   cloudData: AppData | null;
 }
 
+export type ClearScope = { mode: "all" | "month" | "date"; value?: string };
+
 interface BudgetContextType {
   data: AppData;
   period: string;
@@ -85,6 +87,7 @@ interface BudgetContextType {
   updateBudgets: (budgets: Budget[]) => void;
   addCategory: (type: "income" | "expense", name: string) => void;
   deleteCategory: (type: "income" | "expense", name: string) => void;
+  clearTransactions: (scope: ClearScope) => void;
   syncing: boolean;
   pendingSync: PendingSync | null;
   confirmSync: (merge: boolean) => void;
@@ -228,8 +231,26 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     updateData(prev => delCat(prev, type, name));
   }, [updateData]);
 
+  const clearTransactions = useCallback((scope: ClearScope) => {
+    updateData(prev => {
+      let kept: Transaction[];
+      if (scope.mode === "all") {
+        kept = [];
+      } else if (scope.mode === "month" && scope.value) {
+        kept = prev.transactions.filter(t => !t.date.startsWith(scope.value!));
+      } else if (scope.mode === "date" && scope.value) {
+        kept = prev.transactions.filter(t => !t.date.startsWith(scope.value!));
+      } else {
+        kept = prev.transactions;
+      }
+      const next = { ...prev, transactions: kept };
+      saveData(next);
+      return next;
+    });
+  }, [updateData]);
+
   return (
-    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, syncing, pendingSync, confirmSync }}>
+    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, clearTransactions, syncing, pendingSync, confirmSync }}>
       {children}
     </BudgetContext.Provider>
   );

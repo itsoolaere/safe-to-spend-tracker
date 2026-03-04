@@ -12,6 +12,7 @@ import { useSignUpGate } from "@/hooks/useSignUpGate";
 import AddTransactionForm, { type AddTransactionFormRef } from "@/components/AddTransactionForm";
 import CategoryChart from "@/components/CategoryChart";
 import BudgetOverviewWidget from "@/components/BudgetOverviewWidget";
+import ClearDataDialog from "@/components/ClearDataDialog";
 import CategoryManager from "@/components/CategoryManager";
 import RecentTransactions from "@/components/RecentTransactions";
 import QuickTip from "@/components/QuickTip";
@@ -103,12 +104,15 @@ export default function Dashboard() {
             )}
           </SelectContent>
         </Select>
-        <Button variant="outline" size="sm" className="h-9 text-xs" asChild>
-          <Link to="/budget">
-            <PlusCircle className="w-3.5 h-3.5 mr-1" />
-            Budget
-          </Link>
-        </Button>
+        <div className="flex items-center gap-1">
+          <ClearDataDialog />
+          <Button variant="outline" size="sm" className="h-9 text-xs" asChild>
+            <Link to="/budget">
+              <PlusCircle className="w-3.5 h-3.5 mr-1" />
+              Budget
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Warning */}
