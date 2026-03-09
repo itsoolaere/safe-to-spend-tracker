@@ -20,6 +20,7 @@ export function loadData(): AppData {
       transactions: parsed.transactions ?? [],
       categories: parsed.categories ?? { ...DEFAULT_CATEGORIES },
       budgets: parsed.budgets ?? [],
+      beginningBalances: parsed.beginningBalances ?? {},
     };
   } catch {
     return getDefault();

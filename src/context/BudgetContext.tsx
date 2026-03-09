@@ -201,6 +201,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         transactions: [],
         categories: { ...DEFAULT_CATEGORIES },
         budgets: [],
+        beginningBalances: {},
       };
       setData(empty);
       saveData(empty);
