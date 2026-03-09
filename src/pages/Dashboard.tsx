@@ -11,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useSignUpGate } from "@/hooks/useSignUpGate";
 import AddTransactionForm, { type AddTransactionFormRef } from "@/components/AddTransactionForm";
 import CategoryChart from "@/components/CategoryChart";
+import BeginningBalance from "@/components/BeginningBalance";
 import BudgetOverviewWidget from "@/components/BudgetOverviewWidget";
 import ClearDataDialog from "@/components/ClearDataDialog";
 import CategoryManager from "@/components/CategoryManager";
