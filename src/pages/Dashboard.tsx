@@ -152,6 +152,8 @@ export default function Dashboard() {
             </Card>
           </div>
 
+          {user && <WelcomeCard />}
+
           <QuickTip state={tipState} />
 
           <BudgetOverviewWidget budgets={data.budgets} transactions={transactions} period={period} />
