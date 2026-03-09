@@ -92,6 +92,7 @@ interface BudgetContextType {
   deleteCategory: (type: "income" | "expense", name: string) => void;
   clearTransactions: (scope: ClearScope) => void;
   clearBudgets: (scope: { mode: "all" | "month"; value?: string }) => void;
+  setBeginningBalance: (month: string, amount: number) => void;
   syncing: boolean;
   pendingSync: PendingSync | null;
   confirmSync: (merge: boolean) => void;
