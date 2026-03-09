@@ -41,6 +41,7 @@ function mergeData(local: AppData, cloud: AppData): AppData {
     transactions: mergedTx,
     categories: mergedCategories,
     budgets: Array.from(budgetMap.values()),
+    beginningBalances: { ...local.beginningBalances, ...cloud.beginningBalances },
   };
 }
 
