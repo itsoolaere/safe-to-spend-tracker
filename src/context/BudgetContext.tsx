@@ -58,6 +58,7 @@ async function loadCloudData(userId: string): Promise<AppData | null> {
     transactions: d?.transactions ?? [],
     categories: d?.categories ?? { ...DEFAULT_CATEGORIES },
     budgets: d?.budgets ?? [],
+    beginningBalances: d?.beginningBalances ?? {},
   };
 }
 
