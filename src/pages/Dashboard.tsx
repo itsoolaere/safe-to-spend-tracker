@@ -85,6 +85,7 @@ export default function Dashboard() {
           
           <p className="text-muted-foreground">start by adding your first entry below.</p>
         </div>
+        <BeginningBalance />
         <div className="w-full max-w-md">
           <AddTransactionForm />
         </div>
