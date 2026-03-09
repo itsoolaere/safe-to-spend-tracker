@@ -16,7 +16,6 @@ import ClearDataDialog from "@/components/ClearDataDialog";
 import CategoryManager from "@/components/CategoryManager";
 import RecentTransactions from "@/components/RecentTransactions";
 import QuickTip from "@/components/QuickTip";
-import WelcomeCard from "@/components/WelcomeCard";
 import type { TipState } from "@/lib/tips";
 
 const EXPENSE_COLORS = [
@@ -151,8 +150,6 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </div>
-
-          {user && <WelcomeCard />}
 
           <QuickTip state={tipState} />
 
