@@ -7,6 +7,7 @@ function getDefault(): AppData {
     transactions: [],
     categories: { ...DEFAULT_CATEGORIES },
     budgets: [],
+    beginningBalances: {},
   };
 }
 
