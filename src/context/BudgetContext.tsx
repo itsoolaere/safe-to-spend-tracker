@@ -268,8 +268,12 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     });
   }, [updateData]);
 
+  const setBeginningBalance = useCallback((month: string, amount: number) => {
+    updateData(prev => setBB(prev, month, amount));
+  }, [updateData]);
+
   return (
-    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, clearTransactions, clearBudgets, syncing, pendingSync, confirmSync }}>
+    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, clearTransactions, clearBudgets, setBeginningBalance, syncing, pendingSync, confirmSync }}>
       {children}
     </BudgetContext.Provider>
   );
