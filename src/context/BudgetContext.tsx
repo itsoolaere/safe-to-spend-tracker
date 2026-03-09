@@ -124,7 +124,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       } else if (cloudData) {
         finalData = cloudData;
       } else {
-        finalData = { transactions: [], categories: { ...DEFAULT_CATEGORIES }, budgets: [] };
+        finalData = { transactions: [], categories: { ...DEFAULT_CATEGORIES }, budgets: [], beginningBalances: {} };
       }
 
       setData(finalData);
