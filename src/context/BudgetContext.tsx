@@ -9,6 +9,7 @@ import {
   updateBudgets as updateBdg,
   addCategory as addCat,
   deleteCategory as delCat,
+  setBeginningBalance as setBB,
 } from "@/lib/storage";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
