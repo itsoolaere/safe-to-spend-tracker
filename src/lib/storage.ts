@@ -79,3 +79,12 @@ export function deleteCategory(data: AppData, type: "income" | "expense", name: 
   saveData(updated);
   return updated;
 }
+
+export function setBeginningBalance(data: AppData, month: string, amount: number): AppData {
+  const updated = {
+    ...data,
+    beginningBalances: { ...data.beginningBalances, [month]: amount },
+  };
+  saveData(updated);
+  return updated;
+}
