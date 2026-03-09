@@ -20,6 +20,7 @@ export interface AppData {
   transactions: Transaction[];
   categories: { income: string[]; expense: string[] };
   budgets: Budget[];
+  beginningBalances: Record<string, number>; // key = "YYYY-MM", value = amount
 }
 
 export const DEFAULT_CATEGORIES = {

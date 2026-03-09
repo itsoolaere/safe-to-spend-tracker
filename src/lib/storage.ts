@@ -7,6 +7,7 @@ function getDefault(): AppData {
     transactions: [],
     categories: { ...DEFAULT_CATEGORIES },
     budgets: [],
+    beginningBalances: {},
   };
 }
 
@@ -19,6 +20,7 @@ export function loadData(): AppData {
       transactions: parsed.transactions ?? [],
       categories: parsed.categories ?? { ...DEFAULT_CATEGORIES },
       budgets: parsed.budgets ?? [],
+      beginningBalances: parsed.beginningBalances ?? {},
     };
   } catch {
     return getDefault();
@@ -73,6 +75,15 @@ export function deleteCategory(data: AppData, type: "income" | "expense", name: 
   const updated = {
     ...data,
     categories: { ...data.categories, [type]: data.categories[type].filter(c => c !== name) },
+  };
+  saveData(updated);
+  return updated;
+}
+
+export function setBeginningBalance(data: AppData, month: string, amount: number): AppData {
+  const updated = {
+    ...data,
+    beginningBalances: { ...data.beginningBalances, [month]: amount },
   };
   saveData(updated);
   return updated;

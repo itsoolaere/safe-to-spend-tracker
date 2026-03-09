@@ -11,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useSignUpGate } from "@/hooks/useSignUpGate";
 import AddTransactionForm, { type AddTransactionFormRef } from "@/components/AddTransactionForm";
 import CategoryChart from "@/components/CategoryChart";
+import BeginningBalance from "@/components/BeginningBalance";
 import BudgetOverviewWidget from "@/components/BudgetOverviewWidget";
 import ClearDataDialog from "@/components/ClearDataDialog";
 import CategoryManager from "@/components/CategoryManager";
@@ -42,8 +43,9 @@ export default function Dashboard() {
 
   const totalIncome = useMemo(() => filtered.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0), [filtered]);
   const totalExpense = useMemo(() => filtered.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0), [filtered]);
-  const balance = totalIncome - totalExpense;
-  const overBudget = totalExpense > totalIncome;
+  const beginningBalance = data.beginningBalances[period] ?? 0;
+  const balance = beginningBalance + totalIncome - totalExpense;
+  const overBudget = totalExpense > (beginningBalance + totalIncome);
 
   const expenseByCategory = useMemo(() => {
     const map: Record<string, number> = {};
@@ -83,6 +85,7 @@ export default function Dashboard() {
           
           <p className="text-muted-foreground">start by adding your first entry below.</p>
         </div>
+        <BeginningBalance />
         <div className="w-full max-w-md">
           <AddTransactionForm />
         </div>
@@ -114,8 +117,7 @@ export default function Dashboard() {
           </Button>
         </div>
       </div>
-
-      {/* Warning */}
+      <BeginningBalance />
       {overBudget &&
       <Alert variant="destructive" className="animate-fade-in">
           <AlertTriangle className="h-4 w-4" />

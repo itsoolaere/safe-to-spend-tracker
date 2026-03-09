@@ -9,6 +9,7 @@ import {
   updateBudgets as updateBdg,
   addCategory as addCat,
   deleteCategory as delCat,
+  setBeginningBalance as setBB,
 } from "@/lib/storage";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +42,7 @@ function mergeData(local: AppData, cloud: AppData): AppData {
     transactions: mergedTx,
     categories: mergedCategories,
     budgets: Array.from(budgetMap.values()),
+    beginningBalances: { ...local.beginningBalances, ...cloud.beginningBalances },
   };
 }
 
@@ -57,6 +59,7 @@ async function loadCloudData(userId: string): Promise<AppData | null> {
     transactions: d?.transactions ?? [],
     categories: d?.categories ?? { ...DEFAULT_CATEGORIES },
     budgets: d?.budgets ?? [],
+    beginningBalances: d?.beginningBalances ?? {},
   };
 }
 
@@ -89,6 +92,7 @@ interface BudgetContextType {
   deleteCategory: (type: "income" | "expense", name: string) => void;
   clearTransactions: (scope: ClearScope) => void;
   clearBudgets: (scope: { mode: "all" | "month"; value?: string }) => void;
+  setBeginningBalance: (month: string, amount: number) => void;
   syncing: boolean;
   pendingSync: PendingSync | null;
   confirmSync: (merge: boolean) => void;
@@ -122,7 +126,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       } else if (cloudData) {
         finalData = cloudData;
       } else {
-        finalData = { transactions: [], categories: { ...DEFAULT_CATEGORIES }, budgets: [] };
+        finalData = { transactions: [], categories: { ...DEFAULT_CATEGORIES }, budgets: [], beginningBalances: {} };
       }
 
       setData(finalData);
@@ -199,6 +203,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         transactions: [],
         categories: { ...DEFAULT_CATEGORIES },
         budgets: [],
+        beginningBalances: {},
       };
       setData(empty);
       saveData(empty);
@@ -263,8 +268,12 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     });
   }, [updateData]);
 
+  const setBeginningBalance = useCallback((month: string, amount: number) => {
+    updateData(prev => setBB(prev, month, amount));
+  }, [updateData]);
+
   return (
-    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, clearTransactions, clearBudgets, syncing, pendingSync, confirmSync }}>
+    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, clearTransactions, clearBudgets, setBeginningBalance, syncing, pendingSync, confirmSync }}>
       {children}
     </BudgetContext.Provider>
   );
