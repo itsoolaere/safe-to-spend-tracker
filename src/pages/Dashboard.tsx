@@ -116,8 +116,7 @@ export default function Dashboard() {
           </Button>
         </div>
       </div>
-
-      {/* Warning */}
+      <BeginningBalance />
       {overBudget &&
       <Alert variant="destructive" className="animate-fade-in">
           <AlertTriangle className="h-4 w-4" />
