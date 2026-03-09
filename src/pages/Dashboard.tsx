@@ -43,8 +43,9 @@ export default function Dashboard() {
 
   const totalIncome = useMemo(() => filtered.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0), [filtered]);
   const totalExpense = useMemo(() => filtered.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0), [filtered]);
-  const balance = totalIncome - totalExpense;
-  const overBudget = totalExpense > totalIncome;
+  const beginningBalance = data.beginningBalances[period] ?? 0;
+  const balance = beginningBalance + totalIncome - totalExpense;
+  const overBudget = totalExpense > (beginningBalance + totalIncome);
 
   const expenseByCategory = useMemo(() => {
     const map: Record<string, number> = {};
