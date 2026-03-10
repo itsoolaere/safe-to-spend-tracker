@@ -109,20 +109,37 @@ export default function SignUpModal() {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="gate-password">Password</Label>
-              <Input
-                id="gate-password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
-            </div>
+            {!forgotMode && (
+              <div className="space-y-2">
+                <Label htmlFor="gate-password">Password</Label>
+                <Input
+                  id="gate-password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+            )}
+            {!isSignUp && !forgotMode && (
+              <button
+                type="button"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
+                onClick={() => setForgotMode(true)}
+              >
+                forgot password?
+              </button>
+            )}
             <Button type="submit" className="w-full" disabled={submitting}>
-              {submitting ? "please wait…" : isSignUp ? "sign up" : "sign in"}
+              {submitting
+                ? "please wait…"
+                : forgotMode
+                ? "send reset link"
+                : isSignUp
+                ? "sign up"
+                : "sign in"}
             </Button>
           </form>
 
