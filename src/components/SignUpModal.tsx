@@ -36,7 +36,17 @@ export default function SignUpModal() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      if (isSignUp) {
+      if (forgotMode) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        toast({
+          title: "check your email",
+          description: "we sent you a password reset link.",
+        });
+        setForgotMode(false);
+      } else if (isSignUp) {
         const { error } = await supabase.auth.signUp({
           email,
           password,
