@@ -10,6 +10,7 @@ import Dashboard from "@/pages/Dashboard";
 import BudgetVsActual from "@/pages/BudgetVsActual";
 import TransactionHistory from "@/pages/TransactionHistory";
 import NotFound from "./pages/NotFound";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <BudgetProvider>
             <Routes>
               <Route path="/auth" element={<Navigate to="/" replace />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route
                 path="/*"
                 element={
