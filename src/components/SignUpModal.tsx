@@ -20,6 +20,7 @@ export default function SignUpModal() {
   const { shouldPromptSignUp, reason, manualTrigger, setManualTrigger, dismiss } = useSignUpGate();
   const { toast } = useToast();
   const [isSignUp, setIsSignUp] = useState(true);
+  const [forgotMode, setForgotMode] = useState(false);
 
   // When manually triggered (sign-in button), default to login form
   useEffect(() => {
