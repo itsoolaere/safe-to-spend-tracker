@@ -24,6 +24,7 @@ const App = () => (
           <BudgetProvider>
             <Routes>
               <Route path="/auth" element={<Navigate to="/" replace />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route
                 path="/*"
                 element={
