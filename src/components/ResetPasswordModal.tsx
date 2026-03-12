@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,22 +20,54 @@ interface Props {
 
 export default function ResetPasswordModal({ open, onDone }: Props) {
   const { toast } = useToast();
-  const { signOut: authSignOut } = useAuth();
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    const { error } = await supabase.auth.updateUser({ password });
-    if (error) {
-      toast({ title: "error", description: error.message, variant: "destructive" });
-    } else {
+
+    try {
+      let {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+        const accessToken = hashParams.get("access_token");
+        const refreshToken = hashParams.get("refresh_token");
+
+        if (accessToken && refreshToken) {
+          const { data, error: setSessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (setSessionError) throw setSessionError;
+          session = data.session;
+        }
+      }
+
+      if (!session) {
+        toast({
+          title: "error",
+          description: "reset link is invalid or expired. request a new one.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+
       toast({ title: "password updated.", description: "please sign in with your new password." });
       onDone();
       await supabase.auth.signOut();
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    } catch (err: any) {
+      toast({ title: "error", description: err.message, variant: "destructive" });
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
   if (!open) return null;
