@@ -15,6 +15,11 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
+// Tracks whether the current browser session actively generated guest data.
+// sessionStorage clears when the tab is closed, so stale guest data from
+// a previous session (or another person using the same browser) is ignored.
+const GUEST_SESSION_KEY = "sts_guest_session";
+
 function getCurrentMonth() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -106,7 +111,7 @@ interface BudgetContextType {
 const BudgetContext = createContext<BudgetContextType | null>(null);
 
 export function BudgetProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [data, setData] = useState<AppData>(loadData);
   const [period, setPeriod] = useState(getCurrentMonth);
   const [syncing, setSyncing] = useState(false);
@@ -136,6 +141,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
 
       setData(finalData);
       saveData(finalData);
+      sessionStorage.removeItem(GUEST_SESSION_KEY);
     } finally {
       setPendingSync(null);
       setSyncing(false);
@@ -161,7 +167,23 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     });
   }, [persistToCloud]);
 
-  // Sync on sign-in: if guest has local data, ask before merging
+  // Clear stale guest data from previous sessions (e.g. another person used the browser)
+  useEffect(() => {
+    if (loading || user) return;
+    if (!sessionStorage.getItem(GUEST_SESSION_KEY)) {
+      const empty: AppData = {
+        transactions: [],
+        categories: { ...DEFAULT_CATEGORIES },
+        budgets: [],
+        beginningBalances: {},
+        carryForwardDisabled: [],
+      };
+      setData(empty);
+      saveData(empty);
+    }
+  }, [loading, user]);
+
+  // Sync on sign-in: if guest has local data from this session, ask before merging
   useEffect(() => {
     if (!user || hasSynced.current) return;
     hasSynced.current = true;
@@ -172,11 +194,13 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         const localData = loadData();
         const cloudData = await loadCloudData(user.id);
 
-        // Only prompt if there are local transactions not already in the cloud
+        // Only prompt if there are unsynced local transactions AND the current
+        // session actively generated them (prevents showing another person's data)
         const cloudIds = new Set((cloudData?.transactions ?? []).map(t => t.id));
         const hasUnsyncedLocalData = localData.transactions.some(t => !cloudIds.has(t.id));
+        const isActiveGuestSession = sessionStorage.getItem(GUEST_SESSION_KEY) === "1";
 
-        if (hasUnsyncedLocalData) {
+        if (hasUnsyncedLocalData && isActiveGuestSession) {
           // Guest has unsynced data — ask before merging
           setPendingSync({ localData, cloudData });
           setSyncing(false);
@@ -220,11 +244,12 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const addTransaction = useCallback((t: Omit<Transaction, "id">) => {
+    if (!user) sessionStorage.setItem(GUEST_SESSION_KEY, "1");
     updateData(prev => addTx(prev, t));
     // Auto-switch the period filter to match the transaction's month
     const txMonth = t.date.slice(0, 7); // "YYYY-MM"
     setPeriod(txMonth);
-  }, [updateData]);
+  }, [updateData, user]);
 
   const deleteTransaction = useCallback((id: string) => {
     updateData(prev => delTx(prev, id));
