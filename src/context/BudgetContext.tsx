@@ -171,10 +171,13 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       try {
         const localData = loadData();
         const cloudData = await loadCloudData(user.id);
-        const hasLocalData = localData.transactions.length > 0;
 
-        if (hasLocalData) {
-          // Guest has data — ask before syncing
+        // Only prompt if there are local transactions not already in the cloud
+        const cloudIds = new Set((cloudData?.transactions ?? []).map(t => t.id));
+        const hasUnsyncedLocalData = localData.transactions.some(t => !cloudIds.has(t.id));
+
+        if (hasUnsyncedLocalData) {
+          // Guest has unsynced data — ask before merging
           setPendingSync({ localData, cloudData });
           setSyncing(false);
           return;
