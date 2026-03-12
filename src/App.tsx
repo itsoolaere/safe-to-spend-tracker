@@ -10,7 +10,8 @@ import Dashboard from "@/pages/Dashboard";
 import BudgetVsActual from "@/pages/BudgetVsActual";
 import TransactionHistory from "@/pages/TransactionHistory";
 import NotFound from "./pages/NotFound";
-import ResetPassword from "./pages/ResetPassword";
+import ResetPasswordModal from "@/components/ResetPasswordModal";
+import { useAuth } from "@/context/AuthContext";
 
 const queryClient = new QueryClient();
 
