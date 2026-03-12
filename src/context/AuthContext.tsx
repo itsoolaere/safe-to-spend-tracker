@@ -16,6 +16,8 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   loading: true,
+  passwordRecovery: false,
+  clearPasswordRecovery: () => {},
   signOut: async () => {},
 });
 
