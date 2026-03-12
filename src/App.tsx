@@ -9,37 +9,31 @@ import AppLayout from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import BudgetVsActual from "@/pages/BudgetVsActual";
 import TransactionHistory from "@/pages/TransactionHistory";
+import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "./pages/NotFound";
-import ResetPasswordModal from "@/components/ResetPasswordModal";
-import { useAuth } from "@/context/AuthContext";
 
 const queryClient = new QueryClient();
 
 function AppRoutes() {
-  const { passwordRecovery, clearPasswordRecovery } = useAuth();
-
   return (
-    <>
-      <ResetPasswordModal open={passwordRecovery} onDone={clearPasswordRecovery} />
-      <Routes>
-        <Route path="/auth" element={<Navigate to="/" replace />} />
-        <Route path="/resetpassword" element={<Navigate to={"/" + window.location.hash} replace />} />
-        <Route path="/reset-password" element={<Navigate to={"/" + window.location.hash} replace />} />
-        <Route
-          path="/*"
-          element={
-            <AppLayout>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/budget" element={<BudgetVsActual />} />
-                <Route path="/history" element={<TransactionHistory />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AppLayout>
-          }
-        />
-      </Routes>
-    </>
+    <Routes>
+      <Route path="/auth" element={<Navigate to="/" replace />} />
+      <Route path="/resetpassword" element={<Navigate to={"/reset-password" + window.location.hash} replace />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route
+        path="/*"
+        element={
+          <AppLayout>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/budget" element={<BudgetVsActual />} />
+              <Route path="/history" element={<TransactionHistory />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AppLayout>
+        }
+      />
+    </Routes>
   );
 }
 
