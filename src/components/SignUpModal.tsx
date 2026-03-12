@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { getAppUrl } from "@/lib/url";
 import { useToast } from "@/hooks/use-toast";
 import { useSignUpGate } from "@/hooks/useSignUpGate";
@@ -70,13 +69,14 @@ export default function SignUpModal() {
   };
 
   const handleGoogle = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: getAppUrl(),
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: getAppUrl() },
     });
-    if (result?.error) {
+    if (error) {
       toast({
         title: "error",
-        description: result.error.message || "Google sign-in failed",
+        description: error.message || "Google sign-in failed",
         variant: "destructive",
       });
     }
