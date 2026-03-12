@@ -71,7 +71,7 @@ export default function SignUpModal() {
 
   const handleGoogle = async () => {
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: getAppUrl(),
     });
     if (result?.error) {
       toast({
