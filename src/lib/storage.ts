@@ -8,6 +8,7 @@ function getDefault(): AppData {
     categories: { ...DEFAULT_CATEGORIES },
     budgets: [],
     beginningBalances: {},
+    carryForwardDisabled: [],
   };
 }
 
@@ -16,11 +17,16 @@ export function loadData(): AppData {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return getDefault();
     const parsed = JSON.parse(raw) as AppData;
+    const beginningBalances = parsed.beginningBalances ?? {};
+    // Migration: months with existing manual balances are treated as carry-forward disabled
+    const migrated = parsed.carryForwardDisabled
+      ?? Object.keys(beginningBalances);
     return {
       transactions: parsed.transactions ?? [],
       categories: parsed.categories ?? { ...DEFAULT_CATEGORIES },
       budgets: parsed.budgets ?? [],
-      beginningBalances: parsed.beginningBalances ?? {},
+      beginningBalances,
+      carryForwardDisabled: migrated,
     };
   } catch {
     return getDefault();
@@ -84,6 +90,19 @@ export function setBeginningBalance(data: AppData, month: string, amount: number
   const updated = {
     ...data,
     beginningBalances: { ...data.beginningBalances, [month]: amount },
+  };
+  saveData(updated);
+  return updated;
+}
+
+export function toggleCarryForward(data: AppData, month: string): AppData {
+  const disabled = data.carryForwardDisabled ?? [];
+  const isDisabled = disabled.includes(month);
+  const updated = {
+    ...data,
+    carryForwardDisabled: isDisabled
+      ? disabled.filter(m => m !== month)
+      : [...disabled, month],
   };
   saveData(updated);
   return updated;

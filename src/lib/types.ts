@@ -21,6 +21,7 @@ export interface AppData {
   categories: { income: string[]; expense: string[] };
   budgets: Budget[];
   beginningBalances: Record<string, number>; // key = "YYYY-MM", value = amount
+  carryForwardDisabled: string[]; // months where carry-forward is turned off
 }
 
 export const DEFAULT_CATEGORIES = {

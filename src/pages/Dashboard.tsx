@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertTriangle, PlusCircle } from "lucide-react";
 import { useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
+import { computeOpeningBalance } from "@/lib/balance";
 import { useAuth } from "@/context/AuthContext";
 import { useSignUpGate } from "@/hooks/useSignUpGate";
 import AddTransactionForm, { type AddTransactionFormRef } from "@/components/AddTransactionForm";
@@ -43,7 +44,7 @@ export default function Dashboard() {
 
   const totalIncome = useMemo(() => filtered.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0), [filtered]);
   const totalExpense = useMemo(() => filtered.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0), [filtered]);
-  const beginningBalance = data.beginningBalances[period] ?? 0;
+  const beginningBalance = computeOpeningBalance(data, period);
   const balance = beginningBalance + totalIncome - totalExpense;
   const overBudget = totalExpense > (beginningBalance + totalIncome);
 
