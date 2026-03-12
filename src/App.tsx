@@ -23,7 +23,7 @@ function AppRoutes() {
       <ResetPasswordModal open={passwordRecovery} onDone={clearPasswordRecovery} />
       <Routes>
         <Route path="/auth" element={<Navigate to="/" replace />} />
-        <Route path="/reset-password" element={<Navigate to="/" replace />} />
+        <Route path="/reset-password" element={<Navigate to={"/" + window.location.hash} replace />} />
         <Route
           path="/*"
           element={

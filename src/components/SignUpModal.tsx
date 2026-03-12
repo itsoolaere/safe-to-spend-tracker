@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { getAppUrl } from "@/lib/url";
 import { useToast } from "@/hooks/use-toast";
 import { useSignUpGate } from "@/hooks/useSignUpGate";
 import { Button } from "@/components/ui/button";
@@ -38,7 +39,7 @@ export default function SignUpModal() {
     try {
       if (forgotMode) {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/reset-password`,
+          redirectTo: getAppUrl(),
         });
         if (error) throw error;
         toast({
@@ -50,7 +51,7 @@ export default function SignUpModal() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: getAppUrl() },
         });
         if (error) throw error;
         toast({
@@ -70,7 +71,7 @@ export default function SignUpModal() {
 
   const handleGoogle = async () => {
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: getAppUrl(),
     });
     if (result?.error) {
       toast({
