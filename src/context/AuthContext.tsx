@@ -45,8 +45,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Also detect recovery from URL hash (fallback)
     if (window.location.hash.includes("type=recovery")) {
       setPasswordRecovery(true);
-      // Clean up the hash so recovery state doesn't persist on refresh
-      window.history.replaceState(null, "", window.location.pathname + window.location.search);
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
