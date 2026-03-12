@@ -21,6 +21,7 @@ interface Props {
 
 export default function ResetPasswordModal({ open, onDone }: Props) {
   const { toast } = useToast();
+  const { signOut: authSignOut } = useAuth();
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -31,8 +32,9 @@ export default function ResetPasswordModal({ open, onDone }: Props) {
     if (error) {
       toast({ title: "error", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "password updated.", description: "you're all set." });
+      toast({ title: "password updated.", description: "please sign in with your new password." });
       onDone();
+      await supabase.auth.signOut();
     }
     setSubmitting(false);
   };
