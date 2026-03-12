@@ -39,7 +39,7 @@ export default function SignUpModal() {
     try {
       if (forgotMode) {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: getAppUrl(),
+          redirectTo: `${getAppUrl()}/resetpassword`,
         });
         if (error) throw error;
         toast({
