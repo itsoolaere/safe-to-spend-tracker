@@ -55,7 +55,7 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
       amount: num,
       category,
       description,
-      date: date.toISOString(),
+      date: format(date, "yyyy-MM-dd"),
     });
 
     toast.success(`${type === "income" ? "Income" : "Expense"} added!`);
