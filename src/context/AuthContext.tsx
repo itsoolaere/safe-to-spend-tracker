@@ -25,16 +25,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
+
+  const clearPasswordRecovery = () => setPasswordRecovery(false);
 
   useEffect(() => {
     // Set up auth state listener BEFORE getSession
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
+        if (event === "PASSWORD_RECOVERY") {
+          setPasswordRecovery(true);
+        }
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
       }
     );
+
+    // Also detect recovery from URL hash (fallback)
+    if (window.location.hash.includes("type=recovery")) {
+      setPasswordRecovery(true);
+    }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
