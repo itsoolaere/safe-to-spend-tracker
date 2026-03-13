@@ -83,8 +83,17 @@ export default function Dashboard() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-center">
         <div className="space-y-2">
-          
           <p className="text-muted-foreground">start by adding your first entry below.</p>
+          <p className="text-sm text-muted-foreground">
+            have an account?{" "}
+            <button
+              type="button"
+              onClick={() => setManualTrigger(true)}
+              className="text-primary hover:underline underline-offset-2 font-medium"
+            >
+              sign in
+            </button>
+          </p>
         </div>
         <BeginningBalance />
         <div className="w-full max-w-md">
