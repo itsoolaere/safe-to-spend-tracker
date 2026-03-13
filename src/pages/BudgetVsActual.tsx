@@ -12,6 +12,7 @@ import { Save, Plus, ArrowLeft, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import BudgetTable from "@/components/BudgetTable";
 import ClearBudgetDialog from "@/components/ClearBudgetDialog";
+import BudgetSnapshotWidget from "@/components/BudgetSnapshotWidget";
 
 export default function BudgetVsActual() {
   const { data, updateBudgets, addCategory, period, setPeriod } = useBudget();
@@ -131,8 +132,8 @@ export default function BudgetVsActual() {
         </div>
       </div>
 
-      {/* Add new budget entry */}
-      <div className="max-w-xl">
+      {/* Add new budget entry + snapshot widget */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         <Collapsible open={formOpen} onOpenChange={setFormOpen}>
           <Card className="border-none shadow-sm bg-card/60">
             <CollapsibleTrigger asChild>
@@ -217,6 +218,12 @@ export default function BudgetVsActual() {
             </CollapsibleContent>
           </Card>
         </Collapsible>
+        <BudgetSnapshotWidget
+          expenseBudgets={expenseBudgets}
+          incomeBudgets={incomeBudgets}
+          monthlyExpenses={monthlyExpenses}
+          monthlyIncome={monthlyIncome}
+        />
       </div>
 
       {/* Summary cards */}
