@@ -116,7 +116,7 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
                 ))}
               </div>
 
-              <div className="grid grid-cols-2 gap-3 items-end">
+              <div className="grid grid-cols-2 gap-3 items-start">
                 <div className="space-y-2">
                   <Label className="text-xs">Amount</Label>
                   <div className="relative">
