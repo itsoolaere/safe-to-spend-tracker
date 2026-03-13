@@ -13,13 +13,15 @@ import BudgetTable from "@/components/BudgetTable";
 import ClearBudgetDialog from "@/components/ClearBudgetDialog";
 
 export default function BudgetVsActual() {
-  const { data, updateBudgets, period, setPeriod } = useBudget();
+  const { data, updateBudgets, addCategory, period, setPeriod } = useBudget();
   const monthOptions = useMemo(() => getMonthOptions(), []);
 
   const [newCategory, setNewCategory] = useState("");
   const [newType, setNewType] = useState<"expense" | "income">("expense");
   const [newAmount, setNewAmount] = useState("");
   const [newNote, setNewNote] = useState("");
+  const [showNewCat, setShowNewCat] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
   const [editLimits, setEditLimits] = useState<Record<string, string>>({});
 
   const periodBudgets = useMemo(() => data.budgets.filter((b) => b.month === period), [data.budgets, period]);
@@ -64,6 +66,15 @@ export default function BudgetVsActual() {
     updateBudgets(updatedBudgets);
     setEditLimits({});
     toast.success("Budgets updated");
+  };
+
+  const handleAddCategory = () => {
+    if (!newCatName.trim()) return;
+    addCategory(newType, newCatName.trim());
+    setNewCategory(newCatName.trim());
+    setNewCatName("");
+    setShowNewCat(false);
+    toast.success("Category added");
   };
 
   const handleAddBudget = () => {
@@ -127,7 +138,7 @@ export default function BudgetVsActual() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs">Type</Label>
-              <Select value={newType} onValueChange={(v: "expense" | "income") => { setNewType(v); setNewCategory(""); }}>
+              <Select value={newType} onValueChange={(v: "expense" | "income") => { setNewType(v); setNewCategory(""); setShowNewCat(false); setNewCatName(""); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="expense">Expense</SelectItem>
@@ -136,7 +147,28 @@ export default function BudgetVsActual() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Category</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Category</Label>
+                <button
+                  type="button"
+                  onClick={() => { setShowNewCat(!showNewCat); setNewCatName(""); }}
+                  className="text-xs text-primary hover:underline"
+                >
+                  {showNewCat ? "Cancel" : "+ New"}
+                </button>
+              </div>
+              {showNewCat && (
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Category name"
+                    value={newCatName}
+                    onChange={e => setNewCatName(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && handleAddCategory()}
+                    className="text-xs"
+                  />
+                  <Button type="button" size="sm" onClick={handleAddCategory}>Add</Button>
+                </div>
+              )}
               <Select value={newCategory} onValueChange={setNewCategory}>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
