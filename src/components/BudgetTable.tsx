@@ -18,6 +18,7 @@ interface BudgetTableProps {
   editLimits: Record<string, string>;
   setEditLimits: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   onDelete: (id: string) => void;
+  onSave: () => void;
 }
 
 export default function BudgetTable({
@@ -29,6 +30,7 @@ export default function BudgetTable({
   editLimits,
   setEditLimits,
   onDelete,
+  onSave,
 }: BudgetTableProps) {
   const active = budgets.filter(b => b.limit > 0);
   if (active.length === 0) return null;
@@ -64,6 +66,7 @@ export default function BudgetTable({
       <Card className="border-none shadow-sm divide-y divide-border">
         {Object.entries(grouped).map(([category, entries]) => {
           const actual = actuals[category] || 0;
+          const categoryBudgetTotal = entries.reduce((s, b) => s + b.limit, 0);
           const categoryTxs = transactions.filter(t => t.category === category && t.type === type);
           const isOpen = openCategories[category] ?? false;
 
@@ -79,7 +82,7 @@ export default function BudgetTable({
                       {category}
                       <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
                     </span>
-                    <span className="text-xs text-muted-foreground">{formatCurrency(actual)} actual</span>
+                    <span className="text-xs text-muted-foreground">{formatCurrency(categoryBudgetTotal)}</span>
                   </div>
                   </CollapsibleTrigger>
                 </HoverCardTrigger>
@@ -129,6 +132,7 @@ export default function BudgetTable({
                             className="h-6 text-xs text-right w-20"
                             value={editLimits[budget.id]}
                             onChange={e => setEditLimits(p => ({ ...p, [budget.id]: formatInputAmount(e.target.value) }))}
+                            onKeyDown={e => e.key === "Enter" && onSave()}
                             autoFocus
                           />
                         ) : (

@@ -170,7 +170,7 @@ export default function TransactionHistory() {
                 <Label>Amount</Label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">₦</span>
-                  <Input className="pl-7 text-lg font-heading font-semibold" value={editAmount} onChange={e => setEditAmount(formatInputAmount(e.target.value))} />
+                  <Input className="pl-7 text-lg font-heading font-semibold" value={editAmount} onChange={e => setEditAmount(formatInputAmount(e.target.value))} onKeyDown={e => e.key === "Enter" && handleSaveEdit()} />
                 </div>
               </div>
               <div className="space-y-2">
@@ -186,7 +186,7 @@ export default function TransactionHistory() {
               </div>
               <div className="space-y-2">
                 <Label>Description</Label>
-                <Input value={editDescription} onChange={e => setEditDescription(e.target.value)} placeholder="What was this for?" />
+                <Input value={editDescription} onChange={e => setEditDescription(e.target.value)} placeholder="What was this for?" onKeyDown={e => e.key === "Enter" && handleSaveEdit()} />
               </div>
             </div>
           )}
