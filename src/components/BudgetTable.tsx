@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { formatCurrency, formatInputAmount, formatDate } from "@/lib/format";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { Trash2, Pencil } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Trash2, Pencil, ChevronDown } from "lucide-react";
 import { Transaction } from "@/lib/types";
 
 interface BudgetTableProps {
@@ -43,6 +45,14 @@ export default function BudgetTable({
     return acc;
   }, {} as Record<string, typeof active>);
 
+  // Track open state per category — default open
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(Object.keys(grouped).map(cat => [cat, true]))
+  );
+
+  const toggleCategory = (cat: string) =>
+    setOpenCategories(prev => ({ ...prev, [cat]: !prev[cat] }));
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -55,18 +65,26 @@ export default function BudgetTable({
         {Object.entries(grouped).map(([category, entries]) => {
           const actual = actuals[category] || 0;
           const categoryTxs = transactions.filter(t => t.category === category && t.type === type);
+          const isOpen = openCategories[category] ?? true;
+          const isMulti = entries.length > 1;
 
           return (
-            <div key={category} className="p-3 space-y-2.5">
+            <Collapsible key={category} open={isOpen} onOpenChange={() => isMulti && toggleCategory(category)}>
+            <div className="p-3 space-y-2.5">
               {/* Category header */}
               <HoverCard openDelay={200} closeDelay={100}>
                 <HoverCardTrigger asChild>
-                  <div className="flex items-center justify-between cursor-default">
-                    <span className="font-medium text-sm hover:text-primary transition-colors">
+                  <CollapsibleTrigger asChild>
+                  <div className={`flex items-center justify-between ${isMulti ? "cursor-pointer" : "cursor-default"}`}>
+                    <span className="font-medium text-sm hover:text-primary transition-colors flex items-center gap-1">
                       {category}
+                      {isMulti && (
+                        <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                      )}
                     </span>
                     <span className="text-xs text-muted-foreground">{formatCurrency(actual)} actual</span>
                   </div>
+                  </CollapsibleTrigger>
                 </HoverCardTrigger>
                 <HoverCardContent side="right" align="start" className="w-72 p-0">
                   <div className="p-3 border-b">
@@ -96,6 +114,7 @@ export default function BudgetTable({
               </HoverCard>
 
               {/* Entries under this category */}
+              <CollapsibleContent className="space-y-2.5">
               {entries.map(budget => {
                 const pct = budget.limit > 0 ? Math.min((actual / budget.limit) * 100, 100) : 0;
                 const over = isExpense && actual > budget.limit;
@@ -151,7 +170,9 @@ export default function BudgetTable({
                   </div>
                 );
               })}
+              </CollapsibleContent>
             </div>
+            </Collapsible>
           );
         })}
       </Card>
