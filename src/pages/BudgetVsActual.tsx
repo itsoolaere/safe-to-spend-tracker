@@ -12,7 +12,7 @@ import { Save, Plus, ArrowLeft, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import BudgetTable from "@/components/BudgetTable";
 import ClearBudgetDialog from "@/components/ClearBudgetDialog";
-import BudgetSnapshotWidget from "@/components/BudgetSnapshotWidget";
+import BudgetMonthlyWidget from "@/components/BudgetMonthlyWidget";
 
 export default function BudgetVsActual() {
   const { data, updateBudgets, addCategory, period, setPeriod } = useBudget();
@@ -218,12 +218,7 @@ export default function BudgetVsActual() {
             </CollapsibleContent>
           </Card>
         </Collapsible>
-        <BudgetSnapshotWidget
-          expenseBudgets={expenseBudgets}
-          incomeBudgets={incomeBudgets}
-          monthlyExpenses={monthlyExpenses}
-          monthlyIncome={monthlyIncome}
-        />
+        <BudgetMonthlyWidget />
       </div>
 
       {/* Summary cards */}
