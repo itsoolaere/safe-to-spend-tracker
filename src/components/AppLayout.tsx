@@ -119,6 +119,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </NavLink>
             );
           })}
+          {user ? (
+            <button
+              onClick={signOut}
+              className="flex flex-col items-center gap-0.5 px-3 py-1 text-xs font-medium text-muted-foreground transition-colors"
+            >
+              <LogOut className="w-5 h-5" />
+              Sign out
+            </button>
+          ) : (
+            <button
+              onClick={() => setManualTrigger(true)}
+              className="flex flex-col items-center gap-0.5 px-3 py-1 text-xs font-medium text-muted-foreground transition-colors"
+            >
+              <LogIn className="w-5 h-5" />
+              Sign in
+            </button>
+          )}
         </div>
       </nav>
     </div>
