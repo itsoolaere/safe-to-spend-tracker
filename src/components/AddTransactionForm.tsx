@@ -118,7 +118,7 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
 
               <div className="grid grid-cols-2 gap-3 items-start">
                 <div className="space-y-2">
-                  <Label className="text-xs">Amount</Label>
+                  <Label className="text-xs block">Amount</Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-xs">₦</span>
                     <Input
@@ -181,7 +181,7 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label className="text-xs">Date</Label>
+                  <Label className="text-xs block">Date</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button variant="outline" className={cn("w-full justify-start text-left font-normal text-xs px-2.5", !date && "text-muted-foreground")}>
@@ -202,7 +202,7 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-xs">note (optional)</Label>
+                  <Label className="text-xs block">note (optional)</Label>
                   <Input
                     placeholder="What was this for?"
                     className="text-xs"
