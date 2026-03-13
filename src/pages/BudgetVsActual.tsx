@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
-import { Save, Plus, ArrowLeft } from "lucide-react";
+import { Save, Plus, ArrowLeft, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import BudgetTable from "@/components/BudgetTable";
 import ClearBudgetDialog from "@/components/ClearBudgetDialog";
@@ -22,6 +23,7 @@ export default function BudgetVsActual() {
   const [newNote, setNewNote] = useState("");
   const [showNewCat, setShowNewCat] = useState(false);
   const [newCatName, setNewCatName] = useState("");
+  const [formOpen, setFormOpen] = useState(false);
   const [editLimits, setEditLimits] = useState<Record<string, string>>({});
 
   const periodBudgets = useMemo(() => data.budgets.filter((b) => b.month === period), [data.budgets, period]);
@@ -130,81 +132,92 @@ export default function BudgetVsActual() {
       </div>
 
       {/* Add new budget entry */}
-      <Card className="border-none shadow-sm bg-card/60">
-        <CardHeader>
-          <CardTitle className="text-base font-heading">New Budget Entry</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs">Type</Label>
-              <Select value={newType} onValueChange={(v: "expense" | "income") => { setNewType(v); setNewCategory(""); setShowNewCat(false); setNewCatName(""); }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="expense">Expense</SelectItem>
-                  <SelectItem value="income">Income</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs">Category</Label>
-                <button
-                  type="button"
-                  onClick={() => { setShowNewCat(!showNewCat); setNewCatName(""); }}
-                  className="text-xs text-primary hover:underline"
-                >
-                  {showNewCat ? "Cancel" : "+ New"}
-                </button>
-              </div>
-              {showNewCat && (
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Category name"
-                    value={newCatName}
-                    onChange={e => setNewCatName(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && handleAddCategory()}
-                    className="text-xs"
-                  />
-                  <Button type="button" size="sm" onClick={handleAddCategory}>Add</Button>
+      <div className="max-w-xl">
+        <Collapsible open={formOpen} onOpenChange={setFormOpen}>
+          <Card className="border-none shadow-sm bg-card/60">
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer">
+                <CardTitle className="text-base font-heading flex items-center justify-between">
+                  New Budget Entry
+                  <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${formOpen ? "rotate-180" : ""}`} />
+                </CardTitle>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="space-y-3 pt-0">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs h-5 flex items-center">Type</Label>
+                    <Select value={newType} onValueChange={(v: "expense" | "income") => { setNewType(v); setNewCategory(""); setShowNewCat(false); setNewCatName(""); }}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="expense">Expense</SelectItem>
+                        <SelectItem value="income">Income</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="h-5 flex items-center justify-between">
+                      <Label className="text-xs">Category</Label>
+                      <button
+                        type="button"
+                        onClick={() => { setShowNewCat(!showNewCat); setNewCatName(""); }}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        {showNewCat ? "Cancel" : "+ New"}
+                      </button>
+                    </div>
+                    {showNewCat && (
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Category name"
+                          value={newCatName}
+                          onChange={e => setNewCatName(e.target.value)}
+                          onKeyDown={e => e.key === "Enter" && handleAddCategory()}
+                          className="text-xs"
+                        />
+                        <Button type="button" size="sm" onClick={handleAddCategory}>Add</Button>
+                      </div>
+                    )}
+                    <Select value={newCategory} onValueChange={setNewCategory}>
+                      <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>
+                        {data.categories[newType].map((c) =>
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs h-5 flex items-center">Limit Amount</Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₦</span>
+                      <Input
+                        className="pl-7"
+                        placeholder="0"
+                        value={newAmount}
+                        onChange={(e) => setNewAmount(formatInputAmount(e.target.value))} />
+                    </div>
+                  </div>
                 </div>
-              )}
-              <Select value={newCategory} onValueChange={setNewCategory}>
-                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>
-                  {data.categories[newType].map((c) =>
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Limit Amount</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₦</span>
-                <Input
-                  className="pl-7"
-                  placeholder="0"
-                  value={newAmount}
-                  onChange={(e) => setNewAmount(formatInputAmount(e.target.value))} />
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
-            <div className="space-y-1.5 sm:col-span-3">
-              <Label className="text-xs">Note (optional)</Label>
-              <Input
-                placeholder="e.g. weekly groceries, rent, etc."
-                value={newNote}
-                onChange={(e) => setNewNote(e.target.value)}
-              />
-            </div>
-            <Button onClick={handleAddBudget} className="w-full">
-              <Plus className="w-4 h-4 mr-1" /> Add
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+                  <div className="space-y-1.5 sm:col-span-3">
+                    <Label className="text-xs">Note (optional)</Label>
+                    <Input
+                      placeholder="e.g. weekly groceries, rent, etc."
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                    />
+                  </div>
+                  <Button onClick={handleAddBudget} className="w-full">
+                    <Plus className="w-4 h-4 mr-1" /> Add
+                  </Button>
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
