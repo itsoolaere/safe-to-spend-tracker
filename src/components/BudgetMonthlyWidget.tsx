@@ -1,9 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useBudget } from "@/context/BudgetContext";
 import { formatCurrency } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // Chart palette — avoids expense/income colors to prevent confusion
 const CAT_COLORS = [
@@ -30,33 +28,14 @@ function formatMonthLabel(month: string) {
 
 export default function BudgetMonthlyWidget() {
   const { data, period } = useBudget();
-  const [selectedMonth, setSelectedMonth] = useState(period);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // All months that have transactions or budgets
-  const monthsWithData = useMemo(() => {
-    const months = new Set<string>();
-    data.transactions.forEach(t => months.add(t.date.slice(0, 7)));
-    data.budgets.forEach(b => months.add(b.month));
-    return Array.from(months).sort();
-  }, [data]);
-
-  const currentIdx = monthsWithData.indexOf(selectedMonth);
-  const canGoPrev = currentIdx > 0;
-  const canGoNext = currentIdx !== -1 && currentIdx < monthsWithData.length - 1;
-
-  const navigate = (dir: -1 | 1) => {
-    const nextIdx = currentIdx + dir;
-    if (nextIdx >= 0 && nextIdx < monthsWithData.length) {
-      setSelectedMonth(monthsWithData[nextIdx]);
-      setSelectedCategory(null);
-    }
-  };
+  useEffect(() => { setSelectedCategory(null); }, [period]);
 
   // Transactions for selected month
   const monthTxs = useMemo(
-    () => data.transactions.filter(t => t.date.startsWith(selectedMonth)),
-    [data.transactions, selectedMonth]
+    () => data.transactions.filter(t => t.date.startsWith(period)),
+    [data.transactions, period]
   );
 
   const totalIncome = useMemo(
@@ -78,10 +57,10 @@ export default function BudgetMonthlyWidget() {
   const budgetByCategory = useMemo(() => {
     const map: Record<string, number> = {};
     data.budgets
-      .filter(b => b.type === "expense" && b.month === selectedMonth && b.limit > 0)
+      .filter(b => b.type === "expense" && b.month === period && b.limit > 0)
       .forEach(b => { map[b.category] = (map[b.category] || 0) + b.limit; });
     return map;
-  }, [data.budgets, selectedMonth]);
+  }, [data.budgets, period]);
 
   const totalBudget = Object.values(budgetByCategory).reduce((s, v) => s + v, 0);
   const pctUsed = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
@@ -130,31 +109,9 @@ export default function BudgetMonthlyWidget() {
       <CardContent className="pt-4 pb-5 space-y-4">
 
         {/* Month navigator */}
-        <div className="flex items-center justify-between">
-          <span className="font-heading font-semibold text-sm">
-            {formatMonthLabel(selectedMonth)}
-          </span>
-          <div className="flex gap-0.5">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              disabled={!canGoPrev}
-              onClick={() => navigate(-1)}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              disabled={!canGoNext}
-              onClick={() => navigate(1)}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+        <span className="font-heading font-semibold text-sm">
+          {formatMonthLabel(period)}
+        </span>
 
         {/* Summary cards */}
         <div className="grid grid-cols-3 gap-2">
