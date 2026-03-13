@@ -113,30 +113,6 @@ export default function BudgetMonthlyWidget() {
           {formatMonthLabel(period)}
         </span>
 
-        {/* Summary cards */}
-        <div className="grid grid-cols-3 gap-2">
-          <div className="bg-secondary/60 rounded-lg p-2.5 text-center">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Income</p>
-            <p className="text-xs font-heading font-semibold text-income truncate">
-              {formatCurrency(totalIncome)}
-            </p>
-          </div>
-          <div className="bg-secondary/60 rounded-lg p-2.5 text-center">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Spent</p>
-            <p className="text-xs font-heading font-semibold truncate">
-              {formatCurrency(totalSpent)}
-            </p>
-          </div>
-          <div className="bg-secondary/60 rounded-lg p-2.5 text-center">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">Left</p>
-            <p className={`text-xs font-heading font-semibold truncate ${
-              totalIncome - totalSpent >= 0 ? "text-income" : "text-expense"
-            }`}>
-              {formatCurrency(totalIncome - totalSpent)}
-            </p>
-          </div>
-        </div>
-
         {/* Main card */}
         {!hasData ? (
           <p className="text-sm text-muted-foreground text-center py-4">

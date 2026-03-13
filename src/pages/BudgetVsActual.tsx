@@ -55,9 +55,8 @@ export default function BudgetVsActual() {
   const hasEdits = Object.keys(editLimits).length > 0;
 
   const totalExpenseBudget = expenseBudgets.filter((b) => b.limit > 0).reduce((s, b) => s + b.limit, 0);
-  const totalExpenseSpent = expenseBudgets.filter((b) => b.limit > 0).reduce((s, b) => s + (monthlyExpenses[b.category] || 0), 0);
   const totalIncomeBudget = incomeBudgets.filter((b) => b.limit > 0).reduce((s, b) => s + b.limit, 0);
-  const totalIncomeActual = incomeBudgets.filter((b) => b.limit > 0).reduce((s, b) => s + (monthlyIncome[b.category] || 0), 0);
+  const budgetSurplus = totalIncomeBudget - totalExpenseBudget;
 
   const handleSave = () => {
     const updatedBudgets = data.budgets.map((b) => {
@@ -221,37 +220,20 @@ export default function BudgetVsActual() {
         </Collapsible>
       </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card className="border-none shadow-sm">
-          <CardContent className="pt-5 pb-4 text-center">
-            <p className="text-xs text-muted-foreground">Expense Budget</p>
-            <p className="font-heading font-bold mt-1 text-base">{formatCurrency(totalExpenseBudget)}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm">
-          <CardContent className="pt-5 pb-4 text-center">
-            <p className="text-xs text-muted-foreground">Expense Spent</p>
-            <p className="text-base my-[4px] font-bold">
-              {formatCurrency(totalExpenseSpent)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm">
-          <CardContent className="pt-5 pb-4 text-center">
-            <p className="text-xs text-muted-foreground">Income Budget</p>
-            <p className="font-heading font-bold mt-1 text-base">{formatCurrency(totalIncomeBudget)}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm">
-          <CardContent className="pt-5 pb-4 text-center">
-            <p className="text-xs text-muted-foreground">Income Earned</p>
-            <p className="my-[4px] text-base font-bold">
-              {formatCurrency(totalIncomeActual)}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Budget narration */}
+      {hasAnyBudgets && (
+        <p className="text-sm text-muted-foreground">
+          Income budget of{" "}
+          <span className="text-income font-medium">{formatCurrency(totalIncomeBudget)}</span>
+          {" "}against expense budget of{" "}
+          <span className="font-medium">{formatCurrency(totalExpenseBudget)}</span>
+          {" "}— leaving{" "}
+          <span className={`font-medium ${budgetSurplus >= 0 ? "text-income" : "text-expense"}`}>
+            {formatCurrency(Math.abs(budgetSurplus))}
+          </span>
+          {budgetSurplus >= 0 ? " in planned surplus." : " as a planned deficit."}
+        </p>
+      )}
 
       {/* Budget tables */}
       {!hasAnyBudgets ?
