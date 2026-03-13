@@ -19,6 +19,7 @@ export default function BudgetVsActual() {
   const [newCategory, setNewCategory] = useState("");
   const [newType, setNewType] = useState<"expense" | "income">("expense");
   const [newAmount, setNewAmount] = useState("");
+  const [newNote, setNewNote] = useState("");
   const [editLimits, setEditLimits] = useState<Record<string, string>>({});
 
   const periodBudgets = useMemo(() => data.budgets.filter((b) => b.month === period), [data.budgets, period]);
@@ -55,9 +56,8 @@ export default function BudgetVsActual() {
 
   const handleSave = () => {
     const updatedBudgets = data.budgets.map((b) => {
-      const editKey = `${b.type}-${b.category}`;
-      if (b.month === period && editLimits[editKey] !== undefined) {
-        return { ...b, limit: parseFloat(editLimits[editKey].replace(/,/g, "")) || 0 };
+      if (editLimits[b.id] !== undefined) {
+        return { ...b, limit: parseFloat(editLimits[b.id].replace(/,/g, "")) || 0 };
       }
       return b;
     });
@@ -67,19 +67,19 @@ export default function BudgetVsActual() {
   };
 
   const handleAddBudget = () => {
-    if (!newCategory) {toast.error("Select a category");return;}
+    if (!newCategory) { toast.error("Select a category"); return; }
     const amount = parseFloat(newAmount.replace(/,/g, ""));
-    if (!amount || amount <= 0) {toast.error("Enter a valid amount");return;}
+    if (!amount || amount <= 0) { toast.error("Enter a valid amount"); return; }
 
-    const filtered = data.budgets.filter((b) => !(b.category === newCategory && b.type === newType && b.month === period));
-    updateBudgets([...filtered, { category: newCategory, limit: amount, type: newType, month: period }]);
+    updateBudgets([...data.budgets, { id: crypto.randomUUID(), category: newCategory, limit: amount, type: newType, month: period, note: newNote.trim() || undefined }]);
     setNewCategory("");
     setNewAmount("");
+    setNewNote("");
     toast.success("Budget entry added");
   };
 
-  const handleDelete = (type: "income" | "expense") => (category: string) => {
-    updateBudgets(data.budgets.filter((b) => !(b.category === category && b.type === type && b.month === period)));
+  const handleDelete = (_type: "income" | "expense") => (id: string) => {
+    updateBudgets(data.budgets.filter((b) => b.id !== id));
     toast.success("Budget removed");
   };
 
@@ -123,11 +123,11 @@ export default function BudgetVsActual() {
         <CardHeader>
           <CardTitle className="text-base font-heading">New Budget Entry</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs">Type</Label>
-              <Select value={newType} onValueChange={(v: "expense" | "income") => {setNewType(v);setNewCategory("");}}>
+              <Select value={newType} onValueChange={(v: "expense" | "income") => { setNewType(v); setNewCategory(""); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="expense">Expense</SelectItem>
@@ -141,7 +141,7 @@ export default function BudgetVsActual() {
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
                   {data.categories[newType].map((c) =>
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
                   )}
                 </SelectContent>
               </Select>
@@ -155,8 +155,17 @@ export default function BudgetVsActual() {
                   placeholder="0"
                   value={newAmount}
                   onChange={(e) => setNewAmount(formatInputAmount(e.target.value))} />
-
               </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+            <div className="space-y-1.5 sm:col-span-3">
+              <Label className="text-xs">Note (optional)</Label>
+              <Input
+                placeholder="e.g. weekly groceries, rent, etc."
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+              />
             </div>
             <Button onClick={handleAddBudget} className="w-full">
               <Plus className="w-4 h-4 mr-1" /> Add

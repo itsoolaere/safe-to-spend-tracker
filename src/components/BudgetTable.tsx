@@ -11,12 +11,12 @@ import { Transaction } from "@/lib/types";
 interface BudgetTableProps {
   type: "income" | "expense";
   label: string;
-  budgets: { category: string; limit: number; type: "income" | "expense"; month: string }[];
+  budgets: { id: string; category: string; limit: number; type: "income" | "expense"; month: string; note?: string }[];
   actuals: Record<string, number>;
   transactions: Transaction[];
   editLimits: Record<string, string>;
   setEditLimits: React.Dispatch<React.SetStateAction<Record<string, string>>>;
-  onDelete: (category: string) => void;
+  onDelete: (id: string) => void;
 }
 
 export default function BudgetTable({
@@ -61,23 +61,28 @@ export default function BudgetTable({
               const actual = actuals[budget.category] || 0;
               const pct = budget.limit > 0 ? Math.min((actual / budget.limit) * 100, 100) : 0;
               const over = isExpense && actual > budget.limit;
-              const editKey = `${type}-${budget.category}`;
-              const isEditing = editKey in editLimits;
+              const isEditing = budget.id in editLimits;
 
               const categoryTxs = transactions.filter(t => t.category === budget.category && t.type === type);
 
               return (
-                <TableRow key={budget.category}>
+                <TableRow key={budget.id}>
                   <TableCell className="font-medium text-sm">
                     <HoverCard openDelay={200} closeDelay={100}>
                       <HoverCardTrigger asChild>
                         <span className="cursor-default hover:text-primary transition-colors">
-                          {budget.category}
+                          <span>{budget.category}</span>
+                          {budget.note && (
+                            <span className="block text-xs text-muted-foreground font-normal truncate max-w-[140px]">
+                              {budget.note}
+                            </span>
+                          )}
                         </span>
                       </HoverCardTrigger>
                       <HoverCardContent side="right" align="start" className="w-72 p-0">
                         <div className="p-3 border-b">
                           <p className="font-heading font-semibold text-sm">{budget.category}</p>
+                          {budget.note && <p className="text-xs text-primary mt-0.5">{budget.note}</p>}
                           <p className="text-xs text-muted-foreground mt-0.5">
                             {categoryTxs.length} transaction{categoryTxs.length !== 1 ? "s" : ""} · {formatCurrency(actual)} of {formatCurrency(budget.limit)}
                           </p>
@@ -125,14 +130,14 @@ export default function BudgetTable({
                     {isEditing ? (
                       <Input
                         className="h-7 text-xs text-right w-24 ml-auto"
-                        value={editLimits[editKey]}
-                        onChange={e => setEditLimits(p => ({ ...p, [editKey]: formatInputAmount(e.target.value) }))}
+                        value={editLimits[budget.id]}
+                        onChange={e => setEditLimits(p => ({ ...p, [budget.id]: formatInputAmount(e.target.value) }))}
                         autoFocus
                       />
                     ) : (
                       <button
                         className="text-sm font-medium inline-flex items-center gap-1 hover:text-primary transition-colors group"
-                        onClick={() => setEditLimits(p => ({ ...p, [editKey]: String(budget.limit) }))}
+                        onClick={() => setEditLimits(p => ({ ...p, [budget.id]: String(budget.limit) }))}
                       >
                         {formatCurrency(budget.limit)}
                         <Pencil className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -144,7 +149,7 @@ export default function BudgetTable({
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7 text-muted-foreground hover:text-expense"
-                      onClick={() => onDelete(budget.category)}
+                      onClick={() => onDelete(budget.id)}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>

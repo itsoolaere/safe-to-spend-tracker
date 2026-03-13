@@ -38,11 +38,10 @@ function mergeData(local: AppData, cloud: AppData): AppData {
     expense: Array.from(new Set([...DEFAULT_CATEGORIES.expense, ...cloud.categories.expense, ...local.categories.expense])),
   };
 
-  // For budgets, cloud wins (keyed by category+month+type)
-  const budgetKey = (b: Budget) => `${b.category}|${b.month}|${b.type}`;
+  // For budgets, cloud wins (keyed by id)
   const budgetMap = new Map<string, Budget>();
-  local.budgets.forEach(b => budgetMap.set(budgetKey(b), b));
-  cloud.budgets.forEach(b => budgetMap.set(budgetKey(b), b));
+  local.budgets.forEach(b => budgetMap.set(b.id, b));
+  cloud.budgets.forEach(b => budgetMap.set(b.id, b));
 
   return {
     transactions: mergedTx,
@@ -66,7 +65,7 @@ async function loadCloudData(userId: string): Promise<AppData | null> {
   return {
     transactions: d?.transactions ?? [],
     categories: d?.categories ?? { ...DEFAULT_CATEGORIES },
-    budgets: d?.budgets ?? [],
+    budgets: (d?.budgets ?? []).map((b: any) => ({ id: b.id ?? crypto.randomUUID(), ...b })),
     beginningBalances,
     carryForwardDisabled: d?.carryForwardDisabled ?? Object.keys(beginningBalances),
   };

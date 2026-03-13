@@ -24,7 +24,7 @@ export function loadData(): AppData {
     return {
       transactions: parsed.transactions ?? [],
       categories: parsed.categories ?? { ...DEFAULT_CATEGORIES },
-      budgets: parsed.budgets ?? [],
+      budgets: (parsed.budgets ?? []).map((b: any) => ({ id: b.id ?? crypto.randomUUID(), ...b })),
       beginningBalances,
       carryForwardDisabled: migrated,
     };

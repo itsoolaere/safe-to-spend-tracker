@@ -10,10 +10,12 @@ export interface Transaction {
 }
 
 export interface Budget {
+  id: string;
   category: string;
   limit: number;
   type: "income" | "expense";
   month: string; // e.g. "2026-02"
+  note?: string;
 }
 
 export interface AppData {
