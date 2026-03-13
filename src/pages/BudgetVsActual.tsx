@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
-import { Save, Plus, ArrowLeft, ChevronDown } from "lucide-react";
+import { Save, Plus, ArrowLeft, ChevronDown, Lightbulb } from "lucide-react";
 import { Link } from "react-router-dom";
 import BudgetTable from "@/components/BudgetTable";
 import ClearBudgetDialog from "@/components/ClearBudgetDialog";
@@ -134,6 +134,7 @@ export default function BudgetVsActual() {
       {/* Budget snapshot + new budget entry */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         <BudgetMonthlyWidget />
+        <div className="space-y-3">
         <Collapsible open={formOpen} onOpenChange={setFormOpen}>
           <Card className="border-none shadow-sm bg-card/60">
             <CollapsibleTrigger asChild>
@@ -218,22 +219,24 @@ export default function BudgetVsActual() {
             </CollapsibleContent>
           </Card>
         </Collapsible>
+        {hasAnyBudgets && (
+          <div className="flex items-start gap-3 rounded-lg bg-muted/50 px-4 py-3">
+            <Lightbulb className="w-4 h-4 mt-0.5 shrink-0 text-muted-foreground" />
+            <p className="text-sm italic text-muted-foreground leading-relaxed">
+              Income budget of{" "}
+              <span className="text-income not-italic font-medium">{formatCurrency(totalIncomeBudget)}</span>
+              {" "}against expense budget of{" "}
+              <span className="not-italic font-medium">{formatCurrency(totalExpenseBudget)}</span>
+              {" "}— leaving{" "}
+              <span className={`not-italic font-medium ${budgetSurplus >= 0 ? "text-income" : "text-expense"}`}>
+                {formatCurrency(Math.abs(budgetSurplus))}
+              </span>
+              {budgetSurplus >= 0 ? " in planned surplus." : " as a planned deficit."}
+            </p>
+          </div>
+        )}
+        </div>
       </div>
-
-      {/* Budget narration */}
-      {hasAnyBudgets && (
-        <p className="text-sm text-muted-foreground">
-          Income budget of{" "}
-          <span className="text-income font-medium">{formatCurrency(totalIncomeBudget)}</span>
-          {" "}against expense budget of{" "}
-          <span className="font-medium">{formatCurrency(totalExpenseBudget)}</span>
-          {" "}— leaving{" "}
-          <span className={`font-medium ${budgetSurplus >= 0 ? "text-income" : "text-expense"}`}>
-            {formatCurrency(Math.abs(budgetSurplus))}
-          </span>
-          {budgetSurplus >= 0 ? " in planned surplus." : " as a planned deficit."}
-        </p>
-      )}
 
       {/* Budget tables */}
       {!hasAnyBudgets ?
