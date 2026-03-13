@@ -273,17 +273,17 @@ export default function BudgetVsActual() {
         </div>
       </div>
 
-      {/* Mobile layout: widget → income → expense → form */}
+      {/* Mobile layout: widget → form → summary → income → expense */}
       <div className="lg:hidden space-y-4">
         <BudgetMonthlyWidget />
+        {formPanel}
+        {summaryPanel}
         {hasAnyBudgets ? (
           <div className="space-y-4">
             {incomTablePanel}
             {expenseTablePanel}
           </div>
         ) : emptyPanel}
-        {formPanel}
-        {summaryPanel}
       </div>
     </div>
   );
