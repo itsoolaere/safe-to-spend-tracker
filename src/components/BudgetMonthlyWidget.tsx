@@ -267,8 +267,7 @@ export default function BudgetMonthlyWidget() {
                 {categories.map(cat => {
                   const actual = expenseByCategory[cat] || 0;
                   const budget = budgetByCategory[cat] || 0;
-                  const barH = Math.max(Math.round((actual / maxBudgetValue) * BAR_MAX_H), actual > 0 ? 2 : 0);
-                  const ceilH = budget > 0 ? Math.round((budget / maxBudgetValue) * BAR_MAX_H) : null;
+                  const barH = Math.max(Math.round((budget / maxBudgetValue) * BAR_MAX_H), budget > 0 ? 2 : 0);
                   const isOver = budget > 0 && actual > budget;
                   const isSelected = selectedCategory === cat;
                   const isUnselected = selectedCategory !== null && !isSelected;
@@ -294,21 +293,6 @@ export default function BudgetMonthlyWidget() {
                             opacity: isUnselected ? 0.2 : 1,
                           }}
                         />
-                        {/* Budget ceiling line */}
-                        {ceilH !== null && ceilH > 0 && (
-                          <div
-                            className="absolute left-0 right-0 flex justify-center pointer-events-none"
-                            style={{ bottom: `${ceilH}px` }}
-                          >
-                            <div
-                              className="w-full max-w-[36px] h-[2px] rounded-full"
-                              style={{
-                                backgroundColor: isOver ? EXPENSE_COLOR : "hsl(var(--muted-foreground))",
-                                opacity: isUnselected ? 0.2 : 0.55,
-                              }}
-                            />
-                          </div>
-                        )}
                       </div>
                       {/* Category label */}
                       <p
