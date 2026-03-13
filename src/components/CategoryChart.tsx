@@ -54,12 +54,12 @@ export default function CategoryChart({ title, data, colors, transactions, empty
           </CardHeader>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <CardContent>
+          <CardContent className="pl-2 pr-4 pb-4 pt-0">
             {data.length === 0 ? (
               <p className="text-muted-foreground text-sm text-center py-8">{emptyMessage}</p>
             ) : (
               <ResponsiveContainer width="100%" height={Math.max(120, data.length * 40)}>
-                <BarChart data={data} layout="vertical" margin={{ left: 0, right: 16 }}>
+                <BarChart data={data} layout="vertical" margin={{ left: -10, right: 8 }}>
                   <XAxis type="number" hide />
                   <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
                   <Tooltip content={<CategoryTooltip transactions={transactions} />} cursor={false} />
