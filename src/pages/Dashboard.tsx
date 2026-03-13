@@ -142,7 +142,7 @@ export default function Dashboard() {
         {/* LEFT COLUMN - Summary + Charts */}
         <div className="lg:col-span-3 space-y-4 sm:space-y-6">
           {/* Summary cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <Card className={`border-none shadow-sm ${overBudget ? "bg-expense text-expense-foreground" : "bg-primary text-primary-foreground"}`}>
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs opacity-80">safe to spend</p>
@@ -167,7 +167,7 @@ export default function Dashboard() {
 
           <BudgetOverviewWidget budgets={data.budgets} transactions={transactions} period={period} />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-6">
             <CategoryChart
               title="How I Spent"
               data={expenseByCategory}
