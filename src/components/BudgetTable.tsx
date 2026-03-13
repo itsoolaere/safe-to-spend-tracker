@@ -45,9 +45,9 @@ export default function BudgetTable({
     return acc;
   }, {} as Record<string, typeof active>);
 
-  // Track open state per category — default open
+  // Track open state per category — collapsed by default
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(Object.keys(grouped).map(cat => [cat, true]))
+    Object.fromEntries(Object.keys(grouped).map(cat => [cat, false]))
   );
 
   const toggleCategory = (cat: string) =>
@@ -65,22 +65,19 @@ export default function BudgetTable({
         {Object.entries(grouped).map(([category, entries]) => {
           const actual = actuals[category] || 0;
           const categoryTxs = transactions.filter(t => t.category === category && t.type === type);
-          const isOpen = openCategories[category] ?? true;
-          const isMulti = entries.length > 1;
+          const isOpen = openCategories[category] ?? false;
 
           return (
-            <Collapsible key={category} open={isOpen} onOpenChange={() => isMulti && toggleCategory(category)}>
+            <Collapsible key={category} open={isOpen} onOpenChange={() => toggleCategory(category)}>
             <div className="p-3 space-y-2.5">
               {/* Category header */}
               <HoverCard openDelay={200} closeDelay={100}>
                 <HoverCardTrigger asChild>
                   <CollapsibleTrigger asChild>
-                  <div className={`flex items-center justify-between ${isMulti ? "cursor-pointer" : "cursor-default"}`}>
+                  <div className="flex items-center justify-between cursor-pointer">
                     <span className="font-medium text-sm hover:text-primary transition-colors flex items-center gap-1">
                       {category}
-                      {isMulti && (
-                        <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
-                      )}
+                      <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
                     </span>
                     <span className="text-xs text-muted-foreground">{formatCurrency(actual)} actual</span>
                   </div>
