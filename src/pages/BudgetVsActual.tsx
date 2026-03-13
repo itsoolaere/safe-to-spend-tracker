@@ -86,7 +86,7 @@ export default function BudgetVsActual() {
   const hasAnyBudgets = periodBudgets.some((b) => b.limit > 0);
 
   return (
-    <div className="space-y-6 pb-20 sm:pb-0 max-w-3xl mx-auto">
+    <div className="space-y-6 pb-20 sm:pb-0 max-w-5xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -214,7 +214,7 @@ export default function BudgetVsActual() {
           </CardContent>
         </Card> :
 
-      <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
           <BudgetTable type="expense" label="Expense Budgets" budgets={expenseBudgets} actuals={monthlyExpenses} transactions={periodTransactions} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("expense")} />
           <BudgetTable type="income" label="Income Budgets" budgets={incomeBudgets} actuals={monthlyIncome} transactions={periodTransactions} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("income")} />
         </div>
