@@ -132,8 +132,9 @@ export default function BudgetVsActual() {
         </div>
       </div>
 
-      {/* Add new budget entry + snapshot widget */}
+      {/* Budget snapshot + new budget entry */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+        <BudgetMonthlyWidget />
         <Collapsible open={formOpen} onOpenChange={setFormOpen}>
           <Card className="border-none shadow-sm bg-card/60">
             <CollapsibleTrigger asChild>
@@ -218,7 +219,6 @@ export default function BudgetVsActual() {
             </CollapsibleContent>
           </Card>
         </Collapsible>
-        <BudgetMonthlyWidget />
       </div>
 
       {/* Summary cards */}
