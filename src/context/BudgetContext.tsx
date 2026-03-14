@@ -9,6 +9,7 @@ import {
   updateBudgets as updateBdg,
   addCategory as addCat,
   deleteCategory as delCat,
+  renameCategory as renameCat,
   setBeginningBalance as setBB,
   toggleCarryForward as toggleCF,
 } from "@/lib/storage";
