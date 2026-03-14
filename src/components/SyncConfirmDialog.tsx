@@ -20,7 +20,7 @@ export default function SyncConfirmDialog({ open, guestCount, onSync, onDiscard 
 
   return (
     <AlertDialog open={open}>
-      <AlertDialogContent>
+      <AlertDialogContent className="w-[calc(100%-2rem)] sm:max-w-lg">
         <AlertDialogHeader>
           <AlertDialogTitle className="font-heading">sync guest data?</AlertDialogTitle>
           <AlertDialogDescription>
