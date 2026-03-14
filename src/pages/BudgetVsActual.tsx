@@ -204,7 +204,7 @@ export default function BudgetVsActual() {
 
   const incomTablePanel = (
     <div className="rounded-xl bg-card/40 backdrop-blur-sm p-4">
-      <BudgetTable type="income" label="Income Budgets" budgets={incomeBudgets} actuals={monthlyIncome} transactions={periodTransactions} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("income")} onSave={handleSave} />
+      <BudgetTable type="income" label="Income Budgets" budgets={incomeBudgets} actuals={monthlyIncome} transactions={periodTransactions} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("income")} onSave={handleSave} onRenameCategory={(oldName, newName) => renameCategory("income", oldName, newName)} />
     </div>
   );
 
