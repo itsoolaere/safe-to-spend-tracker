@@ -15,7 +15,7 @@ import ClearBudgetDialog from "@/components/ClearBudgetDialog";
 import BudgetMonthlyWidget from "@/components/BudgetMonthlyWidget";
 
 export default function BudgetVsActual() {
-  const { data, updateBudgets, addCategory, period, setPeriod } = useBudget();
+  const { data, updateBudgets, addCategory, renameCategory, period, setPeriod } = useBudget();
   const monthOptions = useMemo(() => getMonthOptions(), []);
 
   const [newCategory, setNewCategory] = useState("");
