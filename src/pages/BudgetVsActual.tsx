@@ -15,7 +15,7 @@ import ClearBudgetDialog from "@/components/ClearBudgetDialog";
 import BudgetMonthlyWidget from "@/components/BudgetMonthlyWidget";
 
 export default function BudgetVsActual() {
-  const { data, updateBudgets, addCategory, renameCategory, period, setPeriod } = useBudget();
+  const { data, updateBudgets, addCategory, period, setPeriod } = useBudget();
   const monthOptions = useMemo(() => getMonthOptions(), []);
 
   const [newCategory, setNewCategory] = useState("");
@@ -204,13 +204,13 @@ export default function BudgetVsActual() {
 
   const incomTablePanel = (
     <div className="rounded-xl bg-card/40 backdrop-blur-sm p-4">
-      <BudgetTable type="income" label="Income Budgets" budgets={incomeBudgets} actuals={monthlyIncome} transactions={periodTransactions} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("income")} onSave={handleSave} onRenameCategory={(oldName, newName) => renameCategory("income", oldName, newName)} />
+      <BudgetTable type="income" label="Income Budgets" budgets={incomeBudgets} actuals={monthlyIncome} transactions={periodTransactions} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("income")} onSave={handleSave} />
     </div>
   );
 
   const expenseTablePanel = (
     <div className="rounded-xl bg-card/40 backdrop-blur-sm p-4">
-      <BudgetTable type="expense" label="Expense Budgets" budgets={expenseBudgets} actuals={monthlyExpenses} transactions={periodTransactions} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("expense")} onSave={handleSave} onRenameCategory={(oldName, newName) => renameCategory("expense", oldName, newName)} />
+      <BudgetTable type="expense" label="Expense Budgets" budgets={expenseBudgets} actuals={monthlyExpenses} transactions={periodTransactions} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("expense")} onSave={handleSave} />
     </div>
   );
 

@@ -86,25 +86,6 @@ export function deleteCategory(data: AppData, type: "income" | "expense", name: 
   return updated;
 }
 
-export function renameCategory(data: AppData, type: "income" | "expense", oldName: string, newName: string): AppData {
-  if (data.categories[type].includes(newName)) return data;
-  const updated = {
-    ...data,
-    categories: {
-      ...data.categories,
-      [type]: data.categories[type].map(c => c === oldName ? newName : c),
-    },
-    transactions: data.transactions.map(t =>
-      t.category === oldName && t.type === type ? { ...t, category: newName } : t
-    ),
-    budgets: data.budgets.map(b =>
-      b.category === oldName && b.type === type ? { ...b, category: newName } : b
-    ),
-  };
-  saveData(updated);
-  return updated;
-}
-
 export function setBeginningBalance(data: AppData, month: string, amount: number): AppData {
   const updated = {
     ...data,

@@ -9,7 +9,6 @@ import {
   updateBudgets as updateBdg,
   addCategory as addCat,
   deleteCategory as delCat,
-  renameCategory as renameCat,
   setBeginningBalance as setBB,
   toggleCarryForward as toggleCF,
 } from "@/lib/storage";
@@ -99,7 +98,6 @@ interface BudgetContextType {
   updateBudgets: (budgets: Budget[]) => void;
   addCategory: (type: "income" | "expense", name: string) => void;
   deleteCategory: (type: "income" | "expense", name: string) => void;
-  renameCategory: (type: "income" | "expense", oldName: string, newName: string) => void;
   clearTransactions: (scope: ClearScope) => void;
   clearBudgets: (scope: { mode: "all" | "month"; value?: string }) => void;
   setBeginningBalance: (month: string, amount: number) => void;
@@ -272,10 +270,6 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     updateData(prev => delCat(prev, type, name));
   }, [updateData]);
 
-  const renameCategory = useCallback((type: "income" | "expense", oldName: string, newName: string) => {
-    updateData(prev => renameCat(prev, type, oldName, newName));
-  }, [updateData]);
-
   const clearTransactions = useCallback((scope: ClearScope) => {
     updateData(prev => {
       let kept: Transaction[];
@@ -316,7 +310,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   }, [updateData]);
 
   return (
-    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, renameCategory, clearTransactions, clearBudgets, setBeginningBalance, toggleCarryForward, syncing, pendingSync, confirmSync }}>
+    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, clearTransactions, clearBudgets, setBeginningBalance, toggleCarryForward, syncing, pendingSync, confirmSync }}>
       {children}
     </BudgetContext.Provider>
   );
