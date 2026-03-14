@@ -20,7 +20,7 @@ export default function SyncConfirmDialog({ open, guestCount, onSync, onDiscard 
 
   return (
     <AlertDialog open={open}>
-      <AlertDialogContent className="w-[calc(100%-2rem)] sm:max-w-lg">
+      <AlertDialogContent className="w-[calc(100%-3rem)] sm:max-w-lg rounded-2xl">
         <AlertDialogHeader>
           <AlertDialogTitle className="font-heading">sync guest data?</AlertDialogTitle>
           <AlertDialogDescription>
@@ -28,12 +28,12 @@ export default function SyncConfirmDialog({ open, guestCount, onSync, onDiscard 
             would you like to add them to your account, or start fresh?
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <Button variant="outline" onClick={onDiscard}>
-            start fresh
-          </Button>
+        <AlertDialogFooter className="flex flex-col gap-3 sm:flex-col">
           <Button onClick={onSync}>
             sync my data
+          </Button>
+          <Button variant="outline" onClick={onDiscard}>
+            start fresh
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
