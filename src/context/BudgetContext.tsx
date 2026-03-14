@@ -99,6 +99,7 @@ interface BudgetContextType {
   updateBudgets: (budgets: Budget[]) => void;
   addCategory: (type: "income" | "expense", name: string) => void;
   deleteCategory: (type: "income" | "expense", name: string) => void;
+  renameCategory: (type: "income" | "expense", oldName: string, newName: string) => void;
   clearTransactions: (scope: ClearScope) => void;
   clearBudgets: (scope: { mode: "all" | "month"; value?: string }) => void;
   setBeginningBalance: (month: string, amount: number) => void;
