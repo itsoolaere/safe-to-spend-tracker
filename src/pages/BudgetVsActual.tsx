@@ -7,16 +7,25 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from "sonner";
-import { Save, Plus, ArrowLeft, ChevronDown, Lightbulb } from "lucide-react";
+import { Save, Plus, ArrowLeft, ChevronDown, Lightbulb, FolderPlus, ExternalLink, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import BudgetTable from "@/components/BudgetTable";
 import ClearBudgetDialog from "@/components/ClearBudgetDialog";
 import BudgetMonthlyWidget from "@/components/BudgetMonthlyWidget";
 
 export default function BudgetVsActual() {
-  const { data, updateBudgets, addCategory, period, setPeriod } = useBudget();
+  const { data, updateBudgets, addCategory, period, setPeriod, addProjectBudget, deleteProjectBudget } = useBudget();
   const monthOptions = useMemo(() => getMonthOptions(), []);
+
+  // New project dialog state
+  const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const [newProjectName, setNewProjectName] = useState("");
+  const [newProjectBudget, setNewProjectBudget] = useState("");
+  const [newProjectAutoClose, setNewProjectAutoClose] = useState(false);
 
   const [newCategory, setNewCategory] = useState("");
   const [newType, setNewType] = useState<"expense" | "income">("expense");
@@ -214,6 +223,94 @@ export default function BudgetVsActual() {
     </div>
   );
 
+  const handleCreateProject = () => {
+    if (!newProjectName.trim()) { toast.error("Enter a project name"); return; }
+    const amount = parseFloat(newProjectBudget.replace(/,/g, ""));
+    if (!amount || amount <= 0) { toast.error("Enter a valid budget amount"); return; }
+    addProjectBudget({
+      name: newProjectName.trim(),
+      totalBudget: amount,
+      categories: [],
+      status: "active",
+      createdAt: new Date().toISOString(),
+      autoClose: newProjectAutoClose,
+    });
+    setNewProjectName("");
+    setNewProjectBudget("");
+    setNewProjectAutoClose(false);
+    setNewProjectOpen(false);
+    toast.success("Project budget created");
+  };
+
+  const projectBudgets = data.projectBudgets ?? [];
+
+  const projectsPanel = (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <h3 className="font-heading font-semibold text-sm">Projects</h3>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setNewProjectOpen(true)}>
+              <FolderPlus className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="left" className="text-xs">New Project Budget</TooltipContent>
+        </Tooltip>
+      </div>
+      {projectBudgets.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-border/60 px-4 py-6 text-center">
+          <p className="text-sm text-muted-foreground">No projects yet.</p>
+          <button
+            onClick={() => setNewProjectOpen(true)}
+            className="text-xs text-primary hover:underline mt-1"
+          >
+            Create your first project budget
+          </button>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-border/40 bg-card/40 backdrop-blur-sm divide-y divide-border/30">
+          {projectBudgets.map(proj => {
+            const spent = (data.projectExpenses ?? [])
+              .filter(e => e.projectId === proj.id)
+              .reduce((s, e) => s + e.amount, 0);
+            const pct = proj.totalBudget > 0 ? Math.round((spent / proj.totalBudget) * 100) : 0;
+            return (
+              <div key={proj.id} className="flex items-center justify-between px-4 py-3 gap-3">
+                <div className="min-w-0 flex-1">
+                  <Link
+                    to={`/budget/projects/${proj.id}`}
+                    className="text-sm font-medium hover:text-primary flex items-center gap-1.5 truncate"
+                  >
+                    {proj.name}
+                    <ExternalLink className="w-3 h-3 shrink-0 text-muted-foreground" />
+                  </Link>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {formatCurrency(spent)} of {formatCurrency(proj.totalBudget)} · {pct}%
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
+                    proj.status === "active"
+                      ? "bg-income/15 text-income"
+                      : "bg-secondary text-muted-foreground"
+                  }`}>
+                    {proj.status === "active" ? "Active" : "Closed"}
+                  </span>
+                  <button
+                    onClick={() => { deleteProjectBudget(proj.id); toast.success("Project deleted"); }}
+                    className="text-muted-foreground hover:text-expense"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
   const emptyPanel = (
     <Card className="border-none shadow-sm">
       <CardContent className="py-12 text-center text-muted-foreground text-sm">
@@ -224,6 +321,49 @@ export default function BudgetVsActual() {
 
   return (
     <div className="space-y-6 pb-20 sm:pb-0">
+      {/* New Project Dialog */}
+      <Dialog open={newProjectOpen} onOpenChange={setNewProjectOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">New Project Budget</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Project Name</Label>
+              <Input
+                placeholder="e.g. Kitchen renovation, Wedding, Trip to Abuja"
+                value={newProjectName}
+                onChange={e => setNewProjectName(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleCreateProject()}
+                autoFocus
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Total Budget</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₦</span>
+                <Input
+                  className="pl-7"
+                  placeholder="0"
+                  value={newProjectBudget}
+                  onChange={e => setNewProjectBudget(formatInputAmount(e.target.value))}
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Auto-close when exhausted</p>
+                <p className="text-xs text-muted-foreground">Closes when spending reaches 100%</p>
+              </div>
+              <Switch checked={newProjectAutoClose} onCheckedChange={setNewProjectAutoClose} />
+            </div>
+            <Button onClick={handleCreateProject} className="w-full">
+              <FolderPlus className="w-4 h-4 mr-1.5" /> Create Project
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -257,8 +397,11 @@ export default function BudgetVsActual() {
 
       {/* Desktop layout: two columns */}
       <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
-        {/* Left: budget snapshot widget */}
-        <BudgetMonthlyWidget />
+        {/* Left: budget snapshot widget + projects */}
+        <div className="space-y-6">
+          <BudgetMonthlyWidget />
+          {projectsPanel}
+        </div>
 
         {/* Right: form → summary → income → expense */}
         <div className="space-y-4">
@@ -273,9 +416,10 @@ export default function BudgetVsActual() {
         </div>
       </div>
 
-      {/* Mobile layout: widget → form → summary → income → expense */}
+      {/* Mobile layout: widget → projects → form → summary → income → expense */}
       <div className="lg:hidden space-y-4">
         <BudgetMonthlyWidget />
+        {projectsPanel}
         {formPanel}
         {summaryPanel}
         {hasAnyBudgets ? (

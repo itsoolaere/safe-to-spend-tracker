@@ -1,4 +1,4 @@
-import { AppData, DEFAULT_CATEGORIES, Transaction, Budget } from "./types";
+import { AppData, DEFAULT_CATEGORIES, Transaction, Budget, ProjectBudget, ProjectExpense } from "./types";
 
 const STORAGE_KEY = "safe-to-spend";
 
@@ -9,6 +9,8 @@ function getDefault(): AppData {
     budgets: [],
     beginningBalances: {},
     carryForwardDisabled: [],
+    projectBudgets: [],
+    projectExpenses: [],
   };
 }
 
@@ -27,6 +29,8 @@ export function loadData(): AppData {
       budgets: (parsed.budgets ?? []).map((b: any) => ({ id: b.id ?? crypto.randomUUID(), ...b })),
       beginningBalances,
       carryForwardDisabled: migrated,
+      projectBudgets: parsed.projectBudgets ?? [],
+      projectExpenses: parsed.projectExpenses ?? [],
     };
   } catch {
     return getDefault();
@@ -104,6 +108,40 @@ export function toggleCarryForward(data: AppData, month: string): AppData {
       ? disabled.filter(m => m !== month)
       : [...disabled, month],
   };
+  saveData(updated);
+  return updated;
+}
+
+export function addProjectBudget(data: AppData, p: Omit<ProjectBudget, "id">): AppData {
+  const updated = { ...data, projectBudgets: [...(data.projectBudgets ?? []), { ...p, id: crypto.randomUUID() }] };
+  saveData(updated);
+  return updated;
+}
+
+export function updateProjectBudget(data: AppData, id: string, updates: Partial<Omit<ProjectBudget, "id">>): AppData {
+  const updated = { ...data, projectBudgets: (data.projectBudgets ?? []).map(p => p.id === id ? { ...p, ...updates } : p) };
+  saveData(updated);
+  return updated;
+}
+
+export function deleteProjectBudget(data: AppData, id: string): AppData {
+  const updated = {
+    ...data,
+    projectBudgets: (data.projectBudgets ?? []).filter(p => p.id !== id),
+    projectExpenses: (data.projectExpenses ?? []).filter(e => e.projectId !== id),
+  };
+  saveData(updated);
+  return updated;
+}
+
+export function addProjectExpense(data: AppData, e: Omit<ProjectExpense, "id">): AppData {
+  const updated = { ...data, projectExpenses: [...(data.projectExpenses ?? []), { ...e, id: crypto.randomUUID() }] };
+  saveData(updated);
+  return updated;
+}
+
+export function deleteProjectExpense(data: AppData, id: string): AppData {
+  const updated = { ...data, projectExpenses: (data.projectExpenses ?? []).filter(e => e.id !== id) };
   saveData(updated);
   return updated;
 }
