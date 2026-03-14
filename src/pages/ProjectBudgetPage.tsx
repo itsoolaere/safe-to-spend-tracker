@@ -253,7 +253,7 @@ export default function ProjectBudgetPage() {
               <span>Category / Note</span>
               <span>{totalSpent > 0 ? `${formatCurrency(totalSpent)} spent of ` : ""}{formatCurrency(totalBudget)} budget</span>
             </div>
-            <Card className="border-none shadow-sm divide-y divide-border">
+            <div className="divide-y divide-border rounded-xl overflow-hidden bg-card shadow-sm">
               {projectLines.map(line => {
                 const actual = expenseByCategory[line.category] || 0;
                 const pct = line.limit > 0 ? Math.min((actual / line.limit) * 100, 100) : 0;
@@ -261,11 +261,11 @@ export default function ProjectBudgetPage() {
                 const isEditing = line.id in editLimits;
 
                 return (
-                  <div key={line.id} className="p-3 space-y-2">
+                  <div key={line.id} className="px-3 py-2">
                     <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium">{line.category}</p>
-                        {line.note && <p className="text-xs text-muted-foreground">{line.note}</p>}
+                        <span className="text-xs font-medium">{line.category}</span>
+                        {line.note && <span className="text-xs text-muted-foreground"> · {line.note}</span>}
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         {isEditing ? (
@@ -278,41 +278,29 @@ export default function ProjectBudgetPage() {
                           />
                         ) : (
                           <button
-                            className="text-xs font-medium inline-flex items-center gap-1 hover:text-primary transition-colors group"
+                            className={`text-xs font-medium inline-flex items-center gap-1 hover:text-primary transition-colors group ${over ? "text-expense" : ""}`}
                             onClick={() => setEditLimits(p => ({ ...p, [line.id]: String(line.limit) }))}
                           >
                             {formatCurrency(line.limit)}
                             <Pencil className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition-opacity" />
                           </button>
                         )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-muted-foreground hover:text-expense"
+                        <button
+                          className="text-muted-foreground hover:text-expense p-0.5"
                           onClick={() => { deleteProjectBudgetLine(line.id); toast.success("Budget line removed"); }}
                         >
                           <Trash2 className="w-3 h-3" />
-                        </Button>
+                        </button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Progress
-                        value={pct}
-                        className={`h-1.5 flex-1 ${over ? "[&>div]:bg-expense" : "[&>div]:bg-primary"}`}
-                      />
-                      <span className={`text-xs w-8 text-right ${over ? "text-expense font-medium" : "text-muted-foreground"}`}>
-                        {Math.round(pct)}%
-                      </span>
-                    </div>
-                    {over && (
-                      <p className="text-[11px] text-expense font-medium">
-                        Over by {formatCurrency(actual - line.limit)}
-                      </p>
-                    )}
+                    <Progress
+                      value={pct}
+                      className={`h-1 mt-1.5 ${over ? "[&>div]:bg-expense" : "[&>div]:bg-primary"}`}
+                    />
                   </div>
                 );
               })}
-            </Card>
+            </div>
           </div>
         )}
       </CardContent>
