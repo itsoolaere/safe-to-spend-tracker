@@ -210,7 +210,7 @@ export default function BudgetVsActual() {
 
   const expenseTablePanel = (
     <div className="rounded-xl bg-card/40 backdrop-blur-sm p-4">
-      <BudgetTable type="expense" label="Expense Budgets" budgets={expenseBudgets} actuals={monthlyExpenses} transactions={periodTransactions} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("expense")} onSave={handleSave} />
+      <BudgetTable type="expense" label="Expense Budgets" budgets={expenseBudgets} actuals={monthlyExpenses} transactions={periodTransactions} editLimits={editLimits} setEditLimits={setEditLimits} onDelete={handleDelete("expense")} onSave={handleSave} onRenameCategory={(oldName, newName) => renameCategory("expense", oldName, newName)} />
     </div>
   );
 
