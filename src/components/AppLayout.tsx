@@ -18,9 +18,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const { setManualTrigger } = useSignUpGate();
   const hasActiveBudgets = data.budgets.some((b) => b.limit > 0);
+  const visibleBaseLinks = user
+    ? baseLinks
+    : baseLinks.filter((l) => l.to !== "/history");
   const links = hasActiveBudgets
-    ? [...baseLinks, { to: "/budget", label: "Budget", icon: Target }]
-    : baseLinks;
+    ? [...visibleBaseLinks, { to: "/budget", label: "Budget", icon: Target }]
+    : visibleBaseLinks;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
