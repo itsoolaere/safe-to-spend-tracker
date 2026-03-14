@@ -36,6 +36,12 @@ export default function BudgetTable({
   onRenameCategory,
 }: BudgetTableProps) {
   const active = budgets.filter(b => b.limit > 0);
+
+  // Track open state per category — collapsed by default
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  const [editCategoryValue, setEditCategoryValue] = useState("");
+
   if (active.length === 0) return null;
 
   const isExpense = type === "expense";
@@ -49,13 +55,6 @@ export default function BudgetTable({
     acc[b.category].push(b);
     return acc;
   }, {} as Record<string, typeof active>);
-
-  // Track open state per category — collapsed by default
-  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(Object.keys(grouped).map(cat => [cat, false]))
-  );
-  const [editingCategory, setEditingCategory] = useState<string | null>(null);
-  const [editCategoryValue, setEditCategoryValue] = useState("");
 
   const toggleCategory = (cat: string) =>
     setOpenCategories(prev => ({ ...prev, [cat]: !prev[cat] }));
