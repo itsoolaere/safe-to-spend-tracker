@@ -21,12 +21,19 @@ export interface Budget {
 export interface ProjectBudget {
   id: string;
   name: string;
-  totalBudget: number;
   categories: string[];
   status: "active" | "closed";
   createdAt: string; // ISO date string
   closedAt?: string;
   autoClose: boolean;
+}
+
+export interface ProjectBudgetLine {
+  id: string;
+  projectId: string;
+  category: string;
+  limit: number;
+  note?: string;
 }
 
 export interface ProjectExpense {
@@ -46,6 +53,7 @@ export interface AppData {
   beginningBalances: Record<string, number>; // key = "YYYY-MM", value = amount
   carryForwardDisabled: string[]; // months where carry-forward is turned off
   projectBudgets: ProjectBudget[];
+  projectBudgetLines: ProjectBudgetLine[];
   projectExpenses: ProjectExpense[];
 }
 

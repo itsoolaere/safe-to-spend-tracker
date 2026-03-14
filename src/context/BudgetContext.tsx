@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from "react";
-import { AppData, Transaction, Budget, ProjectBudget, ProjectExpense, DEFAULT_CATEGORIES } from "@/lib/types";
+import { AppData, Transaction, Budget, ProjectBudget, ProjectBudgetLine, ProjectExpense, DEFAULT_CATEGORIES } from "@/lib/types";
 import {
   loadData,
   saveData,
@@ -14,6 +14,9 @@ import {
   addProjectBudget as addProjBudget,
   updateProjectBudget as updateProjBudget,
   deleteProjectBudget as deleteProjBudget,
+  addProjectBudgetLine as addProjLine,
+  updateProjectBudgetLines as updateProjLines,
+  deleteProjectBudgetLine as deleteProjLine,
   addProjectExpense as addProjExpense,
   deleteProjectExpense as deleteProjExpense,
 } from "@/lib/storage";
@@ -53,6 +56,11 @@ function mergeData(local: AppData, cloud: AppData): AppData {
   (local.projectBudgets ?? []).forEach(p => projBudgetMap.set(p.id, p));
   (cloud.projectBudgets ?? []).forEach(p => projBudgetMap.set(p.id, p));
 
+  // For project budget lines, cloud wins (keyed by id)
+  const projLineMap = new Map<string, ProjectBudgetLine>();
+  (local.projectBudgetLines ?? []).forEach(l => projLineMap.set(l.id, l));
+  (cloud.projectBudgetLines ?? []).forEach(l => projLineMap.set(l.id, l));
+
   // For project expenses, union
   const projExpIds = new Set((cloud.projectExpenses ?? []).map(e => e.id));
   const mergedProjExp = [
@@ -67,6 +75,7 @@ function mergeData(local: AppData, cloud: AppData): AppData {
     beginningBalances: { ...local.beginningBalances, ...cloud.beginningBalances },
     carryForwardDisabled: Array.from(new Set([...(local.carryForwardDisabled ?? []), ...(cloud.carryForwardDisabled ?? [])])),
     projectBudgets: Array.from(projBudgetMap.values()),
+    projectBudgetLines: Array.from(projLineMap.values()),
     projectExpenses: mergedProjExp,
   };
 }
@@ -88,6 +97,7 @@ async function loadCloudData(userId: string): Promise<AppData | null> {
     beginningBalances,
     carryForwardDisabled: d?.carryForwardDisabled ?? Object.keys(beginningBalances),
     projectBudgets: d?.projectBudgets ?? [],
+    projectBudgetLines: d?.projectBudgetLines ?? [],
     projectExpenses: d?.projectExpenses ?? [],
   };
 }
@@ -129,6 +139,9 @@ interface BudgetContextType {
   addProjectBudget: (p: Omit<ProjectBudget, "id">) => void;
   updateProjectBudget: (id: string, updates: Partial<Omit<ProjectBudget, "id">>) => void;
   deleteProjectBudget: (id: string) => void;
+  addProjectBudgetLine: (l: Omit<ProjectBudgetLine, "id">) => void;
+  updateProjectBudgetLines: (lines: ProjectBudgetLine[]) => void;
+  deleteProjectBudgetLine: (id: string) => void;
   addProjectExpense: (e: Omit<ProjectExpense, "id">) => void;
   deleteProjectExpense: (id: string) => void;
 }
@@ -161,7 +174,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       } else if (cloudData) {
         finalData = cloudData;
       } else {
-        finalData = { transactions: [], categories: { ...DEFAULT_CATEGORIES }, budgets: [], beginningBalances: {}, carryForwardDisabled: [], projectBudgets: [], projectExpenses: [] };
+        finalData = { transactions: [], categories: { ...DEFAULT_CATEGORIES }, budgets: [], beginningBalances: {}, carryForwardDisabled: [], projectBudgets: [], projectBudgetLines: [], projectExpenses: [] };
       }
 
       setData(finalData);
@@ -203,6 +216,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         beginningBalances: {},
         carryForwardDisabled: [],
         projectBudgets: [],
+        projectBudgetLines: [],
         projectExpenses: [],
       };
       setData(empty);
@@ -265,6 +279,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         beginningBalances: {},
         carryForwardDisabled: [],
         projectBudgets: [],
+        projectBudgetLines: [],
         projectExpenses: [],
       };
       setData(empty);
@@ -351,6 +366,18 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     updateData(prev => deleteProjBudget(prev, id));
   }, [updateData]);
 
+  const addProjectBudgetLine = useCallback((l: Omit<ProjectBudgetLine, "id">) => {
+    updateData(prev => addProjLine(prev, l));
+  }, [updateData]);
+
+  const updateProjectBudgetLines = useCallback((lines: ProjectBudgetLine[]) => {
+    updateData(prev => updateProjLines(prev, lines));
+  }, [updateData]);
+
+  const deleteProjectBudgetLine = useCallback((id: string) => {
+    updateData(prev => deleteProjLine(prev, id));
+  }, [updateData]);
+
   const addProjectExpense = useCallback((e: Omit<ProjectExpense, "id">) => {
     updateData(prev => addProjExpense(prev, e));
   }, [updateData]);
@@ -360,7 +387,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   }, [updateData]);
 
   return (
-    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, clearTransactions, clearBudgets, setBeginningBalance, toggleCarryForward, syncing, pendingSync, confirmSync, addProjectBudget, updateProjectBudget, deleteProjectBudget, addProjectExpense, deleteProjectExpense }}>
+    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, clearTransactions, clearBudgets, setBeginningBalance, toggleCarryForward, syncing, pendingSync, confirmSync, addProjectBudget, updateProjectBudget, deleteProjectBudget, addProjectBudgetLine, updateProjectBudgetLines, deleteProjectBudgetLine, addProjectExpense, deleteProjectExpense }}>
       {children}
     </BudgetContext.Provider>
   );

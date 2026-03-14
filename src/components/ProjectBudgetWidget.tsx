@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { formatCurrency } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
-import type { ProjectBudget, ProjectExpense } from "@/lib/types";
+import type { ProjectBudget, ProjectBudgetLine, ProjectExpense } from "@/lib/types";
 
 const CAT_COLORS = [
   "hsl(var(--chart-1))",
@@ -14,14 +14,16 @@ const CAT_COLORS = [
   "hsl(55 45% 46%)",
 ];
 
+const EXPENSE_COLOR = "hsl(var(--expense))";
 const BAR_MAX_H = 80;
 
 interface Props {
   project: ProjectBudget;
+  budgetLines: ProjectBudgetLine[];
   expenses: ProjectExpense[];
 }
 
-export default function ProjectBudgetWidget({ project, expenses }: Props) {
+export default function ProjectBudgetWidget({ project, budgetLines, expenses }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const expenseByCategory = useMemo(() => {
@@ -30,11 +32,21 @@ export default function ProjectBudgetWidget({ project, expenses }: Props) {
     return map;
   }, [expenses]);
 
-  const totalSpent = expenses.reduce((s, e) => s + e.amount, 0);
-  const pctUsed = project.totalBudget > 0 ? (totalSpent / project.totalBudget) * 100 : 0;
-  const remaining = project.totalBudget - totalSpent;
+  const budgetByCategory = useMemo(() => {
+    const map: Record<string, number> = {};
+    budgetLines.forEach(l => { map[l.category] = (map[l.category] || 0) + l.limit; });
+    return map;
+  }, [budgetLines]);
 
-  const categories = useMemo(() => Object.keys(expenseByCategory), [expenseByCategory]);
+  const totalBudget = budgetLines.reduce((s, l) => s + l.limit, 0);
+  const totalSpent = expenses.reduce((s, e) => s + e.amount, 0);
+  const pctUsed = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+
+  // Union of categories that have spending or a budget line
+  const categories = useMemo(() =>
+    Array.from(new Set([...Object.keys(budgetByCategory), ...Object.keys(expenseByCategory)])),
+    [budgetByCategory, expenseByCategory]
+  );
 
   const categoryColors: Record<string, string> = useMemo(() => {
     const map: Record<string, string> = {};
@@ -42,88 +54,108 @@ export default function ProjectBudgetWidget({ project, expenses }: Props) {
     return map;
   }, [categories]);
 
-  const maxValue = useMemo(
-    () => Math.max(...categories.map(c => expenseByCategory[c] || 0), 1),
-    [categories, expenseByCategory]
-  );
+  // Bars based on budget limit, not actual
+  const maxBudgetValue = useMemo(() => {
+    const vals = categories.map(cat => budgetByCategory[cat] ?? expenseByCategory[cat] ?? 0);
+    return Math.max(...vals, 1);
+  }, [categories, budgetByCategory, expenseByCategory]);
+
+  // Stacked bar segments by actual spending
+  const stackedSegments = useMemo(() => {
+    if (totalBudget <= 0) return [];
+    return categories
+      .filter(cat => (expenseByCategory[cat] || 0) > 0)
+      .map(cat => ({
+        cat,
+        width: (expenseByCategory[cat] / totalBudget) * 100,
+        color: categoryColors[cat],
+      }));
+  }, [categories, expenseByCategory, totalBudget, categoryColors]);
 
   const selActual = selectedCategory ? (expenseByCategory[selectedCategory] || 0) : 0;
-  const selPct = project.totalBudget > 0 ? Math.round((selActual / project.totalBudget) * 100) : 0;
+  const selBudget = selectedCategory ? (budgetByCategory[selectedCategory] || 0) : 0;
+  const selPct = selBudget > 0 ? Math.round((selActual / selBudget) * 100) : 0;
+  const selLeft = selBudget - selActual;
+
+  const hasData = categories.length > 0;
 
   return (
     <Card className="border-none shadow-sm">
       <CardContent className="pt-4 pb-5 space-y-4">
         <span className="font-heading font-semibold text-sm">Budget Overview</span>
 
-        {expenses.length === 0 ? (
+        {!hasData ? (
           <p className="text-sm text-muted-foreground text-center py-4">
-            No expenses logged yet.
+            Add budget lines to see the overview.
           </p>
         ) : (
           <div className="bg-secondary/30 rounded-xl p-3.5 space-y-3.5">
             {/* Header */}
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">Project spending</span>
-              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                pctUsed > 100 ? "bg-expense/15 text-expense" : "bg-primary/15 text-primary"
-              }`}>
-                {Math.round(pctUsed)}% used
-              </span>
+              {totalBudget > 0 && (
+                <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                  pctUsed > 100 ? "bg-expense/15 text-expense" : "bg-primary/15 text-primary"
+                }`}>
+                  {Math.round(pctUsed)}% used
+                </span>
+              )}
             </div>
 
             {/* Stacked progress bar */}
-            <div className="space-y-1.5">
-              <div className="relative h-3 bg-secondary rounded-full overflow-hidden flex">
-                {categories.filter(c => (expenseByCategory[c] || 0) > 0).map(cat => (
-                  <div
-                    key={cat}
-                    className="h-full flex-shrink-0 transition-all duration-500"
-                    style={{
-                      width: `${Math.min((expenseByCategory[cat] / project.totalBudget) * 100, 100)}%`,
-                      backgroundColor: categoryColors[cat],
-                    }}
-                  />
-                ))}
+            {totalBudget > 0 && (
+              <div className="space-y-1.5">
+                <div className="relative h-3 bg-secondary rounded-full overflow-hidden flex">
+                  {stackedSegments.map(seg => (
+                    <div
+                      key={seg.cat}
+                      className="h-full flex-shrink-0 transition-all duration-500"
+                      style={{ width: `${seg.width}%`, backgroundColor: seg.color }}
+                    />
+                  ))}
+                </div>
+                <div className="flex justify-between text-[10px] text-muted-foreground">
+                  <span>{formatCurrency(totalSpent)} spent</span>
+                  <span>{formatCurrency(totalBudget)} budget</span>
+                </div>
               </div>
-              <div className="flex justify-between text-[10px] text-muted-foreground">
-                <span>{formatCurrency(totalSpent)} spent</span>
-                <span>{formatCurrency(project.totalBudget)} budget</span>
-              </div>
-            </div>
+            )}
 
             <div className="border-t border-border/50" />
 
-            {/* Detail row */}
+            {/* Detail tooltip row */}
             <div className="bg-card rounded-lg px-3 py-2 min-h-[44px] flex items-center">
               {!selectedCategory ? (
-                <div className="flex items-center justify-between w-full">
-                  <span className="text-xs text-muted-foreground italic">
-                    Tap a category to see details
-                  </span>
-                  <span className={`text-sm font-semibold ${remaining >= 0 ? "text-income" : "text-expense"}`}>
-                    {remaining >= 0
-                      ? `${formatCurrency(remaining)} left`
-                      : `${formatCurrency(Math.abs(remaining))} over`}
-                  </span>
-                </div>
+                <p className="text-xs text-muted-foreground italic w-full text-center">
+                  Tap a category to see details
+                </p>
               ) : (
                 <div className="flex items-center justify-between w-full gap-2">
                   <div className="min-w-0">
-                    <p
-                      className="text-xs font-semibold truncate"
-                      style={{ color: categoryColors[selectedCategory] }}
-                    >
+                    <p className="text-xs font-semibold truncate" style={{ color: categoryColors[selectedCategory] }}>
                       {selectedCategory}
                     </p>
                     <p className="text-[10px] text-muted-foreground">
-                      {formatCurrency(selActual)} · {selPct}% of total budget
+                      {formatCurrency(selActual)} spent
+                      {selBudget > 0 && <> · {formatCurrency(selBudget)} budget · {selPct}%</>}
                     </p>
                   </div>
+                  {selBudget > 0 && (
+                    selLeft >= 0 ? (
+                      <span className="text-[11px] font-semibold text-income bg-income/10 px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">
+                        {formatCurrency(selLeft)} left
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-semibold text-expense bg-expense/10 px-2 py-0.5 rounded-full shrink-0">
+                        over budget
+                      </span>
+                    )
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Bar chart */}
+            {/* Bar chart — bars sized by budget limit */}
             {categories.length > 0 && (
               <div
                 className="flex items-end gap-1.5 justify-around"
@@ -131,7 +163,9 @@ export default function ProjectBudgetWidget({ project, expenses }: Props) {
               >
                 {categories.map(cat => {
                   const actual = expenseByCategory[cat] || 0;
-                  const barH = Math.max(Math.round((actual / maxValue) * BAR_MAX_H), 2);
+                  const budget = budgetByCategory[cat] || 0;
+                  const barH = Math.max(Math.round((budget / maxBudgetValue) * BAR_MAX_H), budget > 0 ? 2 : 0);
+                  const isOver = budget > 0 && actual > budget;
                   const isSelected = selectedCategory === cat;
                   const isUnselected = selectedCategory !== null && !isSelected;
 
@@ -150,7 +184,7 @@ export default function ProjectBudgetWidget({ project, expenses }: Props) {
                           className="w-full max-w-[28px] rounded-t-sm transition-all duration-300"
                           style={{
                             height: `${barH}px`,
-                            backgroundColor: categoryColors[cat],
+                            backgroundColor: isOver ? EXPENSE_COLOR : categoryColors[cat],
                             opacity: isUnselected ? 0.2 : 1,
                           }}
                         />

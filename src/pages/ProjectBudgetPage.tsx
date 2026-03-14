@@ -11,30 +11,51 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Switch } from "@/components/ui/switch";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { ArrowLeft, CalendarIcon, Plus, Trash2, Pencil, Check, X } from "lucide-react";
+import { ArrowLeft, CalendarIcon, Plus, Trash2, Pencil, Check, X, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ProjectBudgetWidget from "@/components/ProjectBudgetWidget";
 
 export default function ProjectBudgetPage() {
   const { projectId } = useParams<{ projectId: string }>();
-  const { data, updateProjectBudget, deleteProjectBudget, addProjectExpense, deleteProjectExpense } = useBudget();
+  const {
+    data,
+    updateProjectBudget,
+    deleteProjectBudget,
+    addProjectBudgetLine,
+    updateProjectBudgetLines,
+    deleteProjectBudgetLine,
+    addProjectExpense,
+    deleteProjectExpense,
+  } = useBudget();
 
   const project = useMemo(
     () => (data.projectBudgets ?? []).find(p => p.id === projectId),
     [data.projectBudgets, projectId]
+  );
+  const projectLines = useMemo(
+    () => (data.projectBudgetLines ?? []).filter(l => l.projectId === projectId),
+    [data.projectBudgetLines, projectId]
   );
   const projectExpenses = useMemo(
     () => (data.projectExpenses ?? []).filter(e => e.projectId === projectId),
     [data.projectExpenses, projectId]
   );
 
-  // State — all hooks called unconditionally
+  // Editable name
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(project?.name ?? "");
-  const [editingBudget, setEditingBudget] = useState(false);
-  const [budgetInput, setBudgetInput] = useState(formatInputAmount(String(project?.totalBudget ?? 0)));
+
+  // Budget line form
+  const [lineCategory, setLineCategory] = useState("");
+  const [lineAmount, setLineAmount] = useState("");
+  const [lineNote, setLineNote] = useState("");
+  const [showNewCat, setShowNewCat] = useState(false);
   const [newCatName, setNewCatName] = useState("");
+  const [editLimits, setEditLimits] = useState<Record<string, string>>({});
+
+  // Log expense form
   const [expAmount, setExpAmount] = useState("");
   const [expCategory, setExpCategory] = useState("");
   const [expDescription, setExpDescription] = useState("");
@@ -62,6 +83,11 @@ export default function ProjectBudgetPage() {
     );
   }
 
+  const expenseByCategory: Record<string, number> = {};
+  projectExpenses.forEach(e => {
+    expenseByCategory[e.category] = (expenseByCategory[e.category] || 0) + e.amount;
+  });
+  const totalBudget = projectLines.reduce((s, l) => s + l.limit, 0);
   const totalSpent = projectExpenses.reduce((s, e) => s + e.amount, 0);
 
   const saveName = () => {
@@ -71,25 +97,37 @@ export default function ProjectBudgetPage() {
     toast.success("Project name updated");
   };
 
-  const saveBudget = () => {
-    const amount = parseFloat(budgetInput.replace(/,/g, ""));
-    if (!amount || amount <= 0) { toast.error("Enter a valid amount"); return; }
-    updateProjectBudget(project.id, { totalBudget: amount });
-    setEditingBudget(false);
-    toast.success("Budget updated");
-  };
-
   const addCategoryToProject = () => {
     if (!newCatName.trim()) return;
     if (project.categories.includes(newCatName.trim())) { toast.error("Category already exists"); return; }
     updateProjectBudget(project.id, { categories: [...project.categories, newCatName.trim()] });
     setNewCatName("");
+    setShowNewCat(false);
     toast.success("Category added");
   };
 
-  const removeCategoryFromProject = (cat: string) => {
-    updateProjectBudget(project.id, { categories: project.categories.filter(c => c !== cat) });
-    toast.success("Category removed");
+  const handleAddBudgetLine = () => {
+    if (!lineCategory) { toast.error("Select a category"); return; }
+    const amount = parseFloat(lineAmount.replace(/,/g, ""));
+    if (!amount || amount <= 0) { toast.error("Enter a valid amount"); return; }
+    addProjectBudgetLine({ projectId: project.id, category: lineCategory, limit: amount, note: lineNote.trim() || undefined });
+    setLineCategory("");
+    setLineAmount("");
+    setLineNote("");
+    toast.success("Budget line added");
+  };
+
+  const hasLineEdits = Object.keys(editLimits).length > 0;
+
+  const handleSaveLines = () => {
+    const updated = (data.projectBudgetLines ?? []).map(l =>
+      editLimits[l.id] !== undefined
+        ? { ...l, limit: parseFloat(editLimits[l.id].replace(/,/g, "")) || 0 }
+        : l
+    );
+    updateProjectBudgetLines(updated);
+    setEditLimits({});
+    toast.success("Budget updated");
   };
 
   const prefillFromTransaction = (txId: string) => {
@@ -117,7 +155,7 @@ export default function ProjectBudgetPage() {
     });
 
     // Auto-close check
-    if (project.autoClose && (totalSpent + amount) >= project.totalBudget) {
+    if (project.autoClose && (totalSpent + amount) >= totalBudget && totalBudget > 0) {
       updateProjectBudget(project.id, { status: "closed", closedAt: new Date().toISOString() });
       toast.success("Expense added — project auto-closed, budget exhausted!");
     } else {
@@ -131,50 +169,162 @@ export default function ProjectBudgetPage() {
     setLinkedTxId("");
   };
 
-  const handleDeleteProject = () => {
-    deleteProjectBudget(project.id);
-    toast.success("Project deleted");
-    window.history.back();
-  };
+  // --- Panel definitions ---
+
+  const budgetLinesPanel = (
+    <Card className="border-none shadow-sm">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base font-heading">Budget Lines</CardTitle>
+          {hasLineEdits && (
+            <Button size="sm" onClick={handleSaveLines}>
+              <Save className="w-3.5 h-3.5 mr-1" /> Save
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4 pt-0">
+        {/* Add line form */}
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+            <div className="space-y-1.5">
+              <div className="h-5 flex items-center justify-between">
+                <Label className="text-xs">Category</Label>
+                <button
+                  type="button"
+                  onClick={() => { setShowNewCat(!showNewCat); setNewCatName(""); }}
+                  className="text-xs text-primary hover:underline"
+                >
+                  {showNewCat ? "Cancel" : "+ New"}
+                </button>
+              </div>
+              {showNewCat && (
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Category name"
+                    value={newCatName}
+                    onChange={e => setNewCatName(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && addCategoryToProject()}
+                    className="text-xs"
+                  />
+                  <Button type="button" size="sm" onClick={addCategoryToProject}>Add</Button>
+                </div>
+              )}
+              <Select value={lineCategory} onValueChange={setLineCategory}>
+                <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                <SelectContent>
+                  {project.categories.map(c => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs h-5 flex items-center">Limit Amount</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₦</span>
+                <Input
+                  className="pl-7"
+                  placeholder="0"
+                  value={lineAmount}
+                  onChange={e => setLineAmount(formatInputAmount(e.target.value))}
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs h-5 flex items-center">Note (optional)</Label>
+              <Input
+                placeholder="e.g. materials, labour"
+                value={lineNote}
+                onChange={e => setLineNote(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleAddBudgetLine()}
+              />
+            </div>
+          </div>
+          <Button onClick={handleAddBudgetLine} size="sm" className="w-full sm:w-auto">
+            <Plus className="w-3.5 h-3.5 mr-1" /> Add Line
+          </Button>
+        </div>
+
+        {/* Lines table */}
+        {projectLines.length > 0 && (
+          <div className="space-y-1 border-t pt-3">
+            <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
+              <span>Category / Note</span>
+              <span>{totalSpent > 0 ? `${formatCurrency(totalSpent)} spent of ` : ""}{formatCurrency(totalBudget)} budget</span>
+            </div>
+            <Card className="border-none shadow-sm divide-y divide-border">
+              {projectLines.map(line => {
+                const actual = expenseByCategory[line.category] || 0;
+                const pct = line.limit > 0 ? Math.min((actual / line.limit) * 100, 100) : 0;
+                const over = actual > line.limit;
+                const isEditing = line.id in editLimits;
+
+                return (
+                  <div key={line.id} className="p-3 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium">{line.category}</p>
+                        {line.note && <p className="text-xs text-muted-foreground">{line.note}</p>}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {isEditing ? (
+                          <Input
+                            className="h-6 text-xs text-right w-24"
+                            value={editLimits[line.id]}
+                            onChange={e => setEditLimits(p => ({ ...p, [line.id]: formatInputAmount(e.target.value) }))}
+                            onKeyDown={e => e.key === "Enter" && handleSaveLines()}
+                            autoFocus
+                          />
+                        ) : (
+                          <button
+                            className="text-xs font-medium inline-flex items-center gap-1 hover:text-primary transition-colors group"
+                            onClick={() => setEditLimits(p => ({ ...p, [line.id]: String(line.limit) }))}
+                          >
+                            {formatCurrency(line.limit)}
+                            <Pencil className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-muted-foreground hover:text-expense"
+                          onClick={() => { deleteProjectBudgetLine(line.id); toast.success("Budget line removed"); }}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Progress
+                        value={pct}
+                        className={`h-1.5 flex-1 ${over ? "[&>div]:bg-expense" : "[&>div]:bg-primary"}`}
+                      />
+                      <span className={`text-xs w-8 text-right ${over ? "text-expense font-medium" : "text-muted-foreground"}`}>
+                        {Math.round(pct)}%
+                      </span>
+                    </div>
+                    {over && (
+                      <p className="text-[11px] text-expense font-medium">
+                        Over by {formatCurrency(actual - line.limit)}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </Card>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
 
   const settingsPanel = (
     <Card className="border-none shadow-sm">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-heading">Budget Settings</CardTitle>
+        <CardTitle className="text-base font-heading">Settings</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Total budget */}
-        <div className="space-y-1.5">
-          <Label className="text-xs">Total Budget</Label>
-          {editingBudget ? (
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₦</span>
-                <Input
-                  className="pl-7"
-                  value={budgetInput}
-                  onChange={e => setBudgetInput(formatInputAmount(e.target.value))}
-                  onKeyDown={e => { if (e.key === "Enter") saveBudget(); if (e.key === "Escape") setEditingBudget(false); }}
-                  autoFocus
-                />
-              </div>
-              <Button size="sm" onClick={saveBudget}>Save</Button>
-              <Button size="sm" variant="ghost" onClick={() => setEditingBudget(false)}>Cancel</Button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <p className="font-heading font-semibold text-lg">{formatCurrency(project.totalBudget)}</p>
-              <button
-                onClick={() => { setEditingBudget(true); setBudgetInput(formatInputAmount(String(project.totalBudget))); }}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Auto-close toggle */}
+      <CardContent className="space-y-3">
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium">Auto-close when exhausted</p>
@@ -189,50 +339,12 @@ export default function ProjectBudgetPage() {
     </Card>
   );
 
-  const categoriesPanel = (
-    <Card className="border-none shadow-sm">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base font-heading">Categories</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex gap-2">
-          <Input
-            placeholder="New category name"
-            value={newCatName}
-            onChange={e => setNewCatName(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && addCategoryToProject()}
-            className="text-xs"
-          />
-          <Button size="sm" onClick={addCategoryToProject}><Plus className="w-4 h-4" /></Button>
-        </div>
-        {project.categories.length === 0 ? (
-          <p className="text-xs text-muted-foreground">No categories yet. Add one to start logging expenses.</p>
-        ) : (
-          <div className="flex flex-wrap gap-2">
-            {project.categories.map(cat => (
-              <div key={cat} className="flex items-center gap-1 bg-secondary rounded-full px-2.5 py-1 text-xs">
-                {cat}
-                <button
-                  onClick={() => removeCategoryFromProject(cat)}
-                  className="text-muted-foreground hover:text-expense ml-0.5"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-
   const logExpensePanel = project.status === "active" && (
     <Card className="border-none shadow-sm">
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-heading">Log Expense</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Link to existing transaction */}
         {linkableTransactions.length > 0 && (
           <div className="space-y-1.5">
             <Label className="text-xs block text-left w-full">Link existing transaction (optional)</Label>
@@ -250,11 +362,7 @@ export default function ProjectBudgetPage() {
               </SelectContent>
             </Select>
             {linkedTxId && (
-              <button
-                type="button"
-                onClick={() => setLinkedTxId("")}
-                className="text-xs text-muted-foreground hover:text-foreground"
-              >
+              <button type="button" onClick={() => setLinkedTxId("")} className="text-xs text-muted-foreground hover:text-foreground">
                 Clear link
               </button>
             )}
@@ -266,24 +374,17 @@ export default function ProjectBudgetPage() {
             <Label className="text-xs block text-left w-full">Amount</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₦</span>
-              <Input
-                className="pl-7"
-                placeholder="0"
-                value={expAmount}
-                onChange={e => setExpAmount(formatInputAmount(e.target.value))}
-              />
+              <Input className="pl-7" placeholder="0" value={expAmount} onChange={e => setExpAmount(formatInputAmount(e.target.value))} />
             </div>
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs block text-left w-full">Category</Label>
             <Select value={expCategory} onValueChange={setExpCategory}>
               <SelectTrigger>
-                <SelectValue placeholder={project.categories.length === 0 ? "Add a category first" : "Select"} />
+                <SelectValue placeholder={project.categories.length === 0 ? "Add categories first" : "Select"} />
               </SelectTrigger>
               <SelectContent>
-                {project.categories.map(c => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
+                {project.categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -311,12 +412,7 @@ export default function ProjectBudgetPage() {
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs block text-left w-full">Note (optional)</Label>
-            <Input
-              placeholder="What was this for?"
-              className="text-xs"
-              value={expDescription}
-              onChange={e => setExpDescription(e.target.value)}
-            />
+            <Input placeholder="What was this for?" className="text-xs" value={expDescription} onChange={e => setExpDescription(e.target.value)} />
           </div>
         </div>
 
@@ -337,10 +433,7 @@ export default function ProjectBudgetPage() {
           {[...projectExpenses]
             .sort((a, b) => b.date.localeCompare(a.date))
             .map(exp => (
-              <div
-                key={exp.id}
-                className="flex items-center justify-between bg-card/60 rounded-lg px-3 py-2.5"
-              >
+              <div key={exp.id} className="flex items-center justify-between bg-card/60 rounded-lg px-3 py-2.5">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium">{exp.category}</p>
@@ -348,9 +441,7 @@ export default function ProjectBudgetPage() {
                       <span className="text-[10px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded">linked</span>
                     )}
                   </div>
-                  {exp.description && (
-                    <p className="text-xs text-muted-foreground truncate">{exp.description}</p>
-                  )}
+                  {exp.description && <p className="text-xs text-muted-foreground truncate">{exp.description}</p>}
                   <p className="text-xs text-muted-foreground">{exp.date}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -397,10 +488,7 @@ export default function ProjectBudgetPage() {
           ) : (
             <div className="flex items-center gap-2">
               <h2 className="font-heading font-bold text-lg truncate">{project.name}</h2>
-              <button
-                onClick={() => setEditingName(true)}
-                className="text-muted-foreground hover:text-foreground"
-              >
+              <button onClick={() => setEditingName(true)} className="text-muted-foreground hover:text-foreground">
                 <Pencil className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -409,36 +497,31 @@ export default function ProjectBudgetPage() {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-            project.status === "active"
-              ? "bg-income/15 text-income"
-              : "bg-secondary text-muted-foreground"
+            project.status === "active" ? "bg-income/15 text-income" : "bg-secondary text-muted-foreground"
           }`}>
             {project.status === "active" ? "Active" : "Closed"}
           </span>
           {project.status === "active" ? (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                updateProjectBudget(project.id, { status: "closed", closedAt: new Date().toISOString() });
-                toast.success("Project closed");
-              }}
-            >
+            <Button size="sm" variant="outline" onClick={() => {
+              updateProjectBudget(project.id, { status: "closed", closedAt: new Date().toISOString() });
+              toast.success("Project closed");
+            }}>
               Close
             </Button>
           ) : (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                updateProjectBudget(project.id, { status: "active", closedAt: undefined });
-                toast.success("Project reopened");
-              }}
-            >
+            <Button size="sm" variant="outline" onClick={() => {
+              updateProjectBudget(project.id, { status: "active", closedAt: undefined });
+              toast.success("Project reopened");
+            }}>
               Reopen
             </Button>
           )}
-          <Button size="sm" variant="ghost" onClick={handleDeleteProject} className="text-muted-foreground hover:text-expense">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => { deleteProjectBudget(project.id); toast.success("Project deleted"); window.history.back(); }}
+            className="text-muted-foreground hover:text-expense"
+          >
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
@@ -446,24 +529,22 @@ export default function ProjectBudgetPage() {
 
       {/* Desktop: two columns */}
       <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
-        {/* Left: widget + recent expenses */}
         <div className="space-y-4">
-          <ProjectBudgetWidget project={project} expenses={projectExpenses} />
+          <ProjectBudgetWidget project={project} budgetLines={projectLines} expenses={projectExpenses} />
           {recentExpensesPanel}
         </div>
-        {/* Right: settings + categories + log expense */}
         <div className="space-y-4">
+          {budgetLinesPanel}
           {settingsPanel}
-          {categoriesPanel}
           {logExpensePanel}
         </div>
       </div>
 
       {/* Mobile: single column */}
       <div className="lg:hidden space-y-4">
-        <ProjectBudgetWidget project={project} expenses={projectExpenses} />
+        <ProjectBudgetWidget project={project} budgetLines={projectLines} expenses={projectExpenses} />
+        {budgetLinesPanel}
         {settingsPanel}
-        {categoriesPanel}
         {logExpensePanel}
         {recentExpensesPanel}
       </div>

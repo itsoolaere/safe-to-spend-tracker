@@ -1,4 +1,4 @@
-import { AppData, DEFAULT_CATEGORIES, Transaction, Budget, ProjectBudget, ProjectExpense } from "./types";
+import { AppData, DEFAULT_CATEGORIES, Transaction, Budget, ProjectBudget, ProjectBudgetLine, ProjectExpense } from "./types";
 
 const STORAGE_KEY = "safe-to-spend";
 
@@ -10,6 +10,7 @@ function getDefault(): AppData {
     beginningBalances: {},
     carryForwardDisabled: [],
     projectBudgets: [],
+    projectBudgetLines: [],
     projectExpenses: [],
   };
 }
@@ -30,6 +31,7 @@ export function loadData(): AppData {
       beginningBalances,
       carryForwardDisabled: migrated,
       projectBudgets: parsed.projectBudgets ?? [],
+      projectBudgetLines: parsed.projectBudgetLines ?? [],
       projectExpenses: parsed.projectExpenses ?? [],
     };
   } catch {
@@ -128,8 +130,27 @@ export function deleteProjectBudget(data: AppData, id: string): AppData {
   const updated = {
     ...data,
     projectBudgets: (data.projectBudgets ?? []).filter(p => p.id !== id),
+    projectBudgetLines: (data.projectBudgetLines ?? []).filter(l => l.projectId !== id),
     projectExpenses: (data.projectExpenses ?? []).filter(e => e.projectId !== id),
   };
+  saveData(updated);
+  return updated;
+}
+
+export function addProjectBudgetLine(data: AppData, l: Omit<ProjectBudgetLine, "id">): AppData {
+  const updated = { ...data, projectBudgetLines: [...(data.projectBudgetLines ?? []), { ...l, id: crypto.randomUUID() }] };
+  saveData(updated);
+  return updated;
+}
+
+export function updateProjectBudgetLines(data: AppData, lines: ProjectBudgetLine[]): AppData {
+  const updated = { ...data, projectBudgetLines: lines };
+  saveData(updated);
+  return updated;
+}
+
+export function deleteProjectBudgetLine(data: AppData, id: string): AppData {
+  const updated = { ...data, projectBudgetLines: (data.projectBudgetLines ?? []).filter(l => l.id !== id) };
   saveData(updated);
   return updated;
 }

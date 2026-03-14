@@ -24,7 +24,6 @@ export default function BudgetVsActual() {
   // New project dialog state
   const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
-  const [newProjectBudget, setNewProjectBudget] = useState("");
   const [newProjectAutoClose, setNewProjectAutoClose] = useState(false);
 
   const [newCategory, setNewCategory] = useState("");
@@ -225,18 +224,14 @@ export default function BudgetVsActual() {
 
   const handleCreateProject = () => {
     if (!newProjectName.trim()) { toast.error("Enter a project name"); return; }
-    const amount = parseFloat(newProjectBudget.replace(/,/g, ""));
-    if (!amount || amount <= 0) { toast.error("Enter a valid budget amount"); return; }
     addProjectBudget({
       name: newProjectName.trim(),
-      totalBudget: amount,
       categories: [],
       status: "active",
       createdAt: new Date().toISOString(),
       autoClose: newProjectAutoClose,
     });
     setNewProjectName("");
-    setNewProjectBudget("");
     setNewProjectAutoClose(false);
     setNewProjectOpen(false);
     toast.success("Project budget created");
@@ -270,10 +265,13 @@ export default function BudgetVsActual() {
       ) : (
         <div className="rounded-xl border border-border/40 bg-card/40 backdrop-blur-sm divide-y divide-border/30">
           {projectBudgets.map(proj => {
+            const totalBudget = (data.projectBudgetLines ?? [])
+              .filter(l => l.projectId === proj.id)
+              .reduce((s, l) => s + l.limit, 0);
             const spent = (data.projectExpenses ?? [])
               .filter(e => e.projectId === proj.id)
               .reduce((s, e) => s + e.amount, 0);
-            const pct = proj.totalBudget > 0 ? Math.round((spent / proj.totalBudget) * 100) : 0;
+            const pct = totalBudget > 0 ? Math.round((spent / totalBudget) * 100) : 0;
             return (
               <div key={proj.id} className="flex items-center justify-between px-4 py-3 gap-3">
                 <div className="min-w-0 flex-1">
@@ -285,7 +283,9 @@ export default function BudgetVsActual() {
                     <ExternalLink className="w-3 h-3 shrink-0 text-muted-foreground" />
                   </Link>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {formatCurrency(spent)} of {formatCurrency(proj.totalBudget)} · {pct}%
+                    {totalBudget > 0
+                      ? `${formatCurrency(spent)} of ${formatCurrency(totalBudget)} · ${pct}%`
+                      : "No budget lines yet"}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -337,18 +337,6 @@ export default function BudgetVsActual() {
                 onKeyDown={e => e.key === "Enter" && handleCreateProject()}
                 autoFocus
               />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Total Budget</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">₦</span>
-                <Input
-                  className="pl-7"
-                  placeholder="0"
-                  value={newProjectBudget}
-                  onChange={e => setNewProjectBudget(formatInputAmount(e.target.value))}
-                />
-              </div>
             </div>
             <div className="flex items-center justify-between">
               <div>
