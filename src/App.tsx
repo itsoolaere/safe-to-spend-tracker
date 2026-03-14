@@ -8,7 +8,6 @@ import { AuthProvider } from "@/context/AuthContext";
 import AppLayout from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import BudgetVsActual from "@/pages/BudgetVsActual";
-import ProjectBudgetPage from "@/pages/ProjectBudgetPage";
 import TransactionHistory from "@/pages/TransactionHistory";
 import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -28,7 +27,6 @@ function AppRoutes() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/budget" element={<BudgetVsActual />} />
-              <Route path="/budget/projects/:projectId" element={<ProjectBudgetPage />} />
               <Route path="/history" element={<TransactionHistory />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

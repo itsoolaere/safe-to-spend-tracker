@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from "react";
-import { AppData, Transaction, Budget, ProjectBudget, ProjectBudgetLine, ProjectExpense, DEFAULT_CATEGORIES } from "@/lib/types";
+import { AppData, Transaction, Budget, DEFAULT_CATEGORIES } from "@/lib/types";
 import {
   loadData,
   saveData,
@@ -11,14 +11,6 @@ import {
   deleteCategory as delCat,
   setBeginningBalance as setBB,
   toggleCarryForward as toggleCF,
-  addProjectBudget as addProjBudget,
-  updateProjectBudget as updateProjBudget,
-  deleteProjectBudget as deleteProjBudget,
-  addProjectBudgetLine as addProjLine,
-  updateProjectBudgetLines as updateProjLines,
-  deleteProjectBudgetLine as deleteProjLine,
-  addProjectExpense as addProjExpense,
-  deleteProjectExpense as deleteProjExpense,
 } from "@/lib/storage";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,32 +43,12 @@ function mergeData(local: AppData, cloud: AppData): AppData {
   local.budgets.forEach(b => budgetMap.set(b.id, b));
   cloud.budgets.forEach(b => budgetMap.set(b.id, b));
 
-  // For project budgets, cloud wins (keyed by id)
-  const projBudgetMap = new Map<string, ProjectBudget>();
-  (local.projectBudgets ?? []).forEach(p => projBudgetMap.set(p.id, p));
-  (cloud.projectBudgets ?? []).forEach(p => projBudgetMap.set(p.id, p));
-
-  // For project budget lines, cloud wins (keyed by id)
-  const projLineMap = new Map<string, ProjectBudgetLine>();
-  (local.projectBudgetLines ?? []).forEach(l => projLineMap.set(l.id, l));
-  (cloud.projectBudgetLines ?? []).forEach(l => projLineMap.set(l.id, l));
-
-  // For project expenses, union
-  const projExpIds = new Set((cloud.projectExpenses ?? []).map(e => e.id));
-  const mergedProjExp = [
-    ...(cloud.projectExpenses ?? []),
-    ...(local.projectExpenses ?? []).filter(e => !projExpIds.has(e.id)),
-  ];
-
   return {
     transactions: mergedTx,
     categories: mergedCategories,
     budgets: Array.from(budgetMap.values()),
     beginningBalances: { ...local.beginningBalances, ...cloud.beginningBalances },
     carryForwardDisabled: Array.from(new Set([...(local.carryForwardDisabled ?? []), ...(cloud.carryForwardDisabled ?? [])])),
-    projectBudgets: Array.from(projBudgetMap.values()),
-    projectBudgetLines: Array.from(projLineMap.values()),
-    projectExpenses: mergedProjExp,
   };
 }
 
@@ -96,9 +68,6 @@ async function loadCloudData(userId: string): Promise<AppData | null> {
     budgets: (d?.budgets ?? []).map((b: any) => ({ id: b.id ?? crypto.randomUUID(), ...b })),
     beginningBalances,
     carryForwardDisabled: d?.carryForwardDisabled ?? Object.keys(beginningBalances),
-    projectBudgets: d?.projectBudgets ?? [],
-    projectBudgetLines: d?.projectBudgetLines ?? [],
-    projectExpenses: d?.projectExpenses ?? [],
   };
 }
 
@@ -136,14 +105,6 @@ interface BudgetContextType {
   syncing: boolean;
   pendingSync: PendingSync | null;
   confirmSync: (merge: boolean) => void;
-  addProjectBudget: (p: Omit<ProjectBudget, "id">) => void;
-  updateProjectBudget: (id: string, updates: Partial<Omit<ProjectBudget, "id">>) => void;
-  deleteProjectBudget: (id: string) => void;
-  addProjectBudgetLine: (l: Omit<ProjectBudgetLine, "id">) => void;
-  updateProjectBudgetLines: (lines: ProjectBudgetLine[]) => void;
-  deleteProjectBudgetLine: (id: string) => void;
-  addProjectExpense: (e: Omit<ProjectExpense, "id">) => void;
-  deleteProjectExpense: (id: string) => void;
 }
 
 const BudgetContext = createContext<BudgetContextType | null>(null);
@@ -174,7 +135,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       } else if (cloudData) {
         finalData = cloudData;
       } else {
-        finalData = { transactions: [], categories: { ...DEFAULT_CATEGORIES }, budgets: [], beginningBalances: {}, carryForwardDisabled: [], projectBudgets: [], projectBudgetLines: [], projectExpenses: [] };
+        finalData = { transactions: [], categories: { ...DEFAULT_CATEGORIES }, budgets: [], beginningBalances: {}, carryForwardDisabled: [] };
       }
 
       setData(finalData);
@@ -215,9 +176,6 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         budgets: [],
         beginningBalances: {},
         carryForwardDisabled: [],
-        projectBudgets: [],
-        projectBudgetLines: [],
-        projectExpenses: [],
       };
       setData(empty);
       saveData(empty);
@@ -278,9 +236,6 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         budgets: [],
         beginningBalances: {},
         carryForwardDisabled: [],
-        projectBudgets: [],
-        projectBudgetLines: [],
-        projectExpenses: [],
       };
       setData(empty);
       saveData(empty);
@@ -354,40 +309,8 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     updateData(prev => toggleCF(prev, month));
   }, [updateData]);
 
-  const addProjectBudget = useCallback((p: Omit<ProjectBudget, "id">) => {
-    updateData(prev => addProjBudget(prev, p));
-  }, [updateData]);
-
-  const updateProjectBudget = useCallback((id: string, updates: Partial<Omit<ProjectBudget, "id">>) => {
-    updateData(prev => updateProjBudget(prev, id, updates));
-  }, [updateData]);
-
-  const deleteProjectBudget = useCallback((id: string) => {
-    updateData(prev => deleteProjBudget(prev, id));
-  }, [updateData]);
-
-  const addProjectBudgetLine = useCallback((l: Omit<ProjectBudgetLine, "id">) => {
-    updateData(prev => addProjLine(prev, l));
-  }, [updateData]);
-
-  const updateProjectBudgetLines = useCallback((lines: ProjectBudgetLine[]) => {
-    updateData(prev => updateProjLines(prev, lines));
-  }, [updateData]);
-
-  const deleteProjectBudgetLine = useCallback((id: string) => {
-    updateData(prev => deleteProjLine(prev, id));
-  }, [updateData]);
-
-  const addProjectExpense = useCallback((e: Omit<ProjectExpense, "id">) => {
-    updateData(prev => addProjExpense(prev, e));
-  }, [updateData]);
-
-  const deleteProjectExpense = useCallback((id: string) => {
-    updateData(prev => deleteProjExpense(prev, id));
-  }, [updateData]);
-
   return (
-    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, clearTransactions, clearBudgets, setBeginningBalance, toggleCarryForward, syncing, pendingSync, confirmSync, addProjectBudget, updateProjectBudget, deleteProjectBudget, addProjectBudgetLine, updateProjectBudgetLines, deleteProjectBudgetLine, addProjectExpense, deleteProjectExpense }}>
+    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, clearTransactions, clearBudgets, setBeginningBalance, toggleCarryForward, syncing, pendingSync, confirmSync }}>
       {children}
     </BudgetContext.Provider>
   );

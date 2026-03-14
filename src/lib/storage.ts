@@ -1,4 +1,4 @@
-import { AppData, DEFAULT_CATEGORIES, Transaction, Budget, ProjectBudget, ProjectBudgetLine, ProjectExpense } from "./types";
+import { AppData, DEFAULT_CATEGORIES, Transaction, Budget } from "./types";
 
 const STORAGE_KEY = "safe-to-spend";
 
@@ -9,9 +9,6 @@ function getDefault(): AppData {
     budgets: [],
     beginningBalances: {},
     carryForwardDisabled: [],
-    projectBudgets: [],
-    projectBudgetLines: [],
-    projectExpenses: [],
   };
 }
 
@@ -30,9 +27,6 @@ export function loadData(): AppData {
       budgets: (parsed.budgets ?? []).map((b: any) => ({ id: b.id ?? crypto.randomUUID(), ...b })),
       beginningBalances,
       carryForwardDisabled: migrated,
-      projectBudgets: parsed.projectBudgets ?? [],
-      projectBudgetLines: parsed.projectBudgetLines ?? [],
-      projectExpenses: parsed.projectExpenses ?? [],
     };
   } catch {
     return getDefault();
@@ -110,59 +104,6 @@ export function toggleCarryForward(data: AppData, month: string): AppData {
       ? disabled.filter(m => m !== month)
       : [...disabled, month],
   };
-  saveData(updated);
-  return updated;
-}
-
-export function addProjectBudget(data: AppData, p: Omit<ProjectBudget, "id">): AppData {
-  const updated = { ...data, projectBudgets: [...(data.projectBudgets ?? []), { ...p, id: crypto.randomUUID() }] };
-  saveData(updated);
-  return updated;
-}
-
-export function updateProjectBudget(data: AppData, id: string, updates: Partial<Omit<ProjectBudget, "id">>): AppData {
-  const updated = { ...data, projectBudgets: (data.projectBudgets ?? []).map(p => p.id === id ? { ...p, ...updates } : p) };
-  saveData(updated);
-  return updated;
-}
-
-export function deleteProjectBudget(data: AppData, id: string): AppData {
-  const updated = {
-    ...data,
-    projectBudgets: (data.projectBudgets ?? []).filter(p => p.id !== id),
-    projectBudgetLines: (data.projectBudgetLines ?? []).filter(l => l.projectId !== id),
-    projectExpenses: (data.projectExpenses ?? []).filter(e => e.projectId !== id),
-  };
-  saveData(updated);
-  return updated;
-}
-
-export function addProjectBudgetLine(data: AppData, l: Omit<ProjectBudgetLine, "id">): AppData {
-  const updated = { ...data, projectBudgetLines: [...(data.projectBudgetLines ?? []), { ...l, id: crypto.randomUUID() }] };
-  saveData(updated);
-  return updated;
-}
-
-export function updateProjectBudgetLines(data: AppData, lines: ProjectBudgetLine[]): AppData {
-  const updated = { ...data, projectBudgetLines: lines };
-  saveData(updated);
-  return updated;
-}
-
-export function deleteProjectBudgetLine(data: AppData, id: string): AppData {
-  const updated = { ...data, projectBudgetLines: (data.projectBudgetLines ?? []).filter(l => l.id !== id) };
-  saveData(updated);
-  return updated;
-}
-
-export function addProjectExpense(data: AppData, e: Omit<ProjectExpense, "id">): AppData {
-  const updated = { ...data, projectExpenses: [...(data.projectExpenses ?? []), { ...e, id: crypto.randomUUID() }] };
-  saveData(updated);
-  return updated;
-}
-
-export function deleteProjectExpense(data: AppData, id: string): AppData {
-  const updated = { ...data, projectExpenses: (data.projectExpenses ?? []).filter(e => e.id !== id) };
   saveData(updated);
   return updated;
 }
