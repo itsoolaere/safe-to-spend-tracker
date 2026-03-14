@@ -272,6 +272,10 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     updateData(prev => delCat(prev, type, name));
   }, [updateData]);
 
+  const renameCategory = useCallback((type: "income" | "expense", oldName: string, newName: string) => {
+    updateData(prev => renameCat(prev, type, oldName, newName));
+  }, [updateData]);
+
   const clearTransactions = useCallback((scope: ClearScope) => {
     updateData(prev => {
       let kept: Transaction[];
