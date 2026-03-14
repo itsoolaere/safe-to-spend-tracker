@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Trash2, Pencil, ChevronDown } from "lucide-react";
+import { Trash2, Pencil, ChevronDown, Check, X } from "lucide-react";
 import { Transaction } from "@/lib/types";
+import { toast } from "sonner";
 
 interface BudgetTableProps {
   type: "income" | "expense";
@@ -19,6 +20,7 @@ interface BudgetTableProps {
   setEditLimits: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   onDelete: (id: string) => void;
   onSave: () => void;
+  onRenameCategory?: (oldName: string, newName: string) => void;
 }
 
 export default function BudgetTable({
@@ -31,8 +33,15 @@ export default function BudgetTable({
   setEditLimits,
   onDelete,
   onSave,
+  onRenameCategory,
 }: BudgetTableProps) {
   const active = budgets.filter(b => b.limit > 0);
+
+  // Track open state per category — collapsed by default
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  const [editCategoryValue, setEditCategoryValue] = useState("");
+
   if (active.length === 0) return null;
 
   const isExpense = type === "expense";
@@ -47,13 +56,30 @@ export default function BudgetTable({
     return acc;
   }, {} as Record<string, typeof active>);
 
-  // Track open state per category — collapsed by default
-  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(Object.keys(grouped).map(cat => [cat, false]))
-  );
-
   const toggleCategory = (cat: string) =>
     setOpenCategories(prev => ({ ...prev, [cat]: !prev[cat] }));
+
+  const startEditCategory = (cat: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingCategory(cat);
+    setEditCategoryValue(cat);
+  };
+
+  const saveCategory = () => {
+    if (!editingCategory || !editCategoryValue.trim()) return;
+    const trimmed = editCategoryValue.trim();
+    if (trimmed !== editingCategory && onRenameCategory) {
+      onRenameCategory(editingCategory, trimmed);
+      toast.success(`"${editingCategory}" renamed to "${trimmed}"`);
+    }
+    setEditingCategory(null);
+    setEditCategoryValue("");
+  };
+
+  const cancelEditCategory = () => {
+    setEditingCategory(null);
+    setEditCategoryValue("");
+  };
 
   return (
     <div className="space-y-3">
@@ -69,6 +95,7 @@ export default function BudgetTable({
           const categoryBudgetTotal = entries.reduce((s, b) => s + b.limit, 0);
           const categoryTxs = transactions.filter(t => t.category === category && t.type === type);
           const isOpen = openCategories[category] ?? false;
+          const isEditingThis = editingCategory === category;
 
           return (
             <Collapsible key={category} open={isOpen} onOpenChange={() => toggleCategory(category)}>
@@ -78,10 +105,38 @@ export default function BudgetTable({
                 <HoverCardTrigger asChild>
                   <CollapsibleTrigger asChild>
                   <div className="flex items-center justify-between cursor-pointer">
-                    <span className="font-medium text-sm hover:text-primary transition-colors flex items-center gap-1">
-                      {category}
-                      <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
-                    </span>
+                    {isEditingThis ? (
+                      <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                        <Input
+                          className="h-6 text-sm w-32"
+                          value={editCategoryValue}
+                          onChange={e => setEditCategoryValue(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === "Enter") saveCategory();
+                            if (e.key === "Escape") cancelEditCategory();
+                          }}
+                          autoFocus
+                          onClick={e => e.stopPropagation()}
+                        />
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-income" onClick={(e) => { e.stopPropagation(); saveCategory(); }}>
+                          <Check className="w-3 h-3" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground" onClick={(e) => { e.stopPropagation(); cancelEditCategory(); }}>
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <span className="font-medium text-sm hover:text-primary transition-colors flex items-center gap-1 group">
+                        {category}
+                        <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                        {onRenameCategory && (
+                          <Pencil
+                            className="w-3 h-3 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-primary transition-all cursor-pointer"
+                            onClick={(e) => startEditCategory(category, e)}
+                          />
+                        )}
+                      </span>
+                    )}
                     <span className="text-xs text-muted-foreground">{formatCurrency(categoryBudgetTotal)}</span>
                   </div>
                   </CollapsibleTrigger>
