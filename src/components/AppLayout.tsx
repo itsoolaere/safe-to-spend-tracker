@@ -32,7 +32,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         onDiscard={() => confirmSync(false)}
       />
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-30">
-        <div className="container flex items-center justify-between h-16 px-4 max-w-6xl mx-auto">
+        <div className="container flex items-center justify-between h-16 px-4 max-w-7xl mx-auto">
           <h1 className="font-heading text-xl font-bold tracking-tight text-foreground">
             <span className="italic">safe</span> to spend
           </h1>
@@ -85,7 +85,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1 container max-w-6xl mx-auto px-4 py-6 animate-fade-in">
+      <main className="flex-1 container max-w-7xl mx-auto px-4 py-6 animate-fade-in">
         {children}
       </main>
 
