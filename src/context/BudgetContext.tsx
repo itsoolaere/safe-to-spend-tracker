@@ -316,7 +316,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
   }, [updateData]);
 
   return (
-    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, clearTransactions, clearBudgets, setBeginningBalance, toggleCarryForward, syncing, pendingSync, confirmSync }}>
+    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, renameCategory, clearTransactions, clearBudgets, setBeginningBalance, toggleCarryForward, syncing, pendingSync, confirmSync }}>
       {children}
     </BudgetContext.Provider>
   );
