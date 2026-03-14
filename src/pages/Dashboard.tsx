@@ -104,7 +104,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-4 pb-24 sm:pb-0 relative">
+    <div className="space-y-4 pb-24 sm:pb-0 relative max-w-5xl mx-auto">
       {/* Date filter + Budget button */}
       <div className="flex items-center justify-between gap-2">
         <Select value={period} onValueChange={setPeriod}>
