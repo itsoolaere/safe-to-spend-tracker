@@ -15,6 +15,7 @@ export default function ResetPassword() {
   const [sessionReady, setSessionReady] = useState(false);
   const [sessionError, setSessionError] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [email, setEmail] = useState("");
   const [signinPassword, setSigninPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -47,6 +48,10 @@ export default function ResetPassword() {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      toast({ title: "passwords don't match", description: "please make sure both passwords are the same.", variant: "destructive" });
+      return;
+    }
     setSubmitting(true);
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
@@ -114,8 +119,20 @@ export default function ResetPassword() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
-                    minLength={6}
+                    minLength={8}
                     autoFocus
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirm Password</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={8}
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={submitting}>
@@ -153,7 +170,7 @@ export default function ResetPassword() {
                     value={signinPassword}
                     onChange={(e) => setSigninPassword(e.target.value)}
                     required
-                    minLength={6}
+                    minLength={8}
                     autoFocus
                   />
                 </div>

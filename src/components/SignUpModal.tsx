@@ -117,7 +117,7 @@ export default function SignUpModal() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  minLength={6}
+                  minLength={8}
                 />
               </div>
             )}
