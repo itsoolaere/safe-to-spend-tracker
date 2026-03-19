@@ -1,23 +1,29 @@
 
 
-## Add Clear Budgets + Conditional Budget Nav Icon
+## Problem
 
-### Two changes:
+The preview is showing a blank page because the app crashes on startup with the error: **"supabaseUrl is required."**
 
-**1. Add a "Clear budgets" action to the Budget page (`src/pages/BudgetVsActual.tsx`)**
+The root cause: the last diff added `.env` and `.env.*` to `.gitignore`. This caused the `.env` file (which contains `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, etc.) to be excluded from the project, so the Supabase client receives `undefined` and throws an error that crashes the entire app.
 
-- Add a `clearBudgets` function to `BudgetContext` that works similarly to `clearTransactions` but operates on `data.budgets`. Accepts `{ mode: "all" | "month", value?: string }`.
-  - `"all"` → removes all budgets
-  - `"month"` → removes budgets where `b.month === value`
-- Create a `ClearBudgetDialog` component (or extend `ClearDataDialog` with a `target` prop) using an AlertDialog with two radio options: "All budgets" and "This month's budgets".
-- Place the clear button in the Budget page header next to the Save button.
+## Fix
 
-**2. Hide the Budget nav icon when no budgets exist (`src/components/AppLayout.tsx`)**
+### 1. Revert the `.gitignore` change for `.env`
 
-- Currently the Budget link is shown when `hasActiveBudgets` is true (`data.budgets.some(b => b.limit > 0)`). This already hides the icon when no budgets exist. No change needed here — the existing logic already handles this. After clearing all budgets, the nav icon will automatically disappear.
+Remove the lines that ignore `.env` files from `.gitignore`. The `.env` in this project is auto-managed by Lovable Cloud and contains only public/anon keys — it is safe and necessary to keep in the repo.
 
-### Files to change:
-- **`src/context/BudgetContext.tsx`** — Add `clearBudgets(scope)` to context, expose it.
-- **New: `src/components/ClearBudgetDialog.tsx`** — AlertDialog with "all" / "this month" radio options, calls `clearBudgets`.
-- **`src/pages/BudgetVsActual.tsx`** — Import and render `ClearBudgetDialog` in the header area.
+Lines to remove from `.gitignore`:
+```
+.env
+.env.*
+!.env.example
+```
+
+### 2. Fix the Edge Function build error (secondary)
+
+Remove the `external_id` property from `process-email-queue/index.ts` line 178, as it doesn't exist on the `EmailSendRequest` type. This fixes the TS2353 build error for the edge function deployment.
+
+## Summary
+
+Two small edits: one to `.gitignore` (remove 3 lines) and one to `process-email-queue/index.ts` (remove 1 line). The app will load again immediately after the `.gitignore` fix.
 
