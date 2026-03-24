@@ -3,6 +3,8 @@ import { AppData, Transaction, Budget, DEFAULT_CATEGORIES } from "@/lib/types";
 import {
   loadData,
   saveData,
+  DEFAULT_ASSETS,
+  convertDueFutureObligations,
   addTransaction as addTx,
   deleteTransaction as delTx,
   updateTransaction as updTx,
@@ -11,6 +13,15 @@ import {
   deleteCategory as delCat,
   setBeginningBalance as setBB,
   toggleCarryForward as toggleCF,
+  addAsset as addAssetFn,
+  updateAsset as updateAssetFn,
+  renameAsset as renameAssetFn,
+  deleteAsset as deleteAssetFn,
+  addCurrentObligation as addCurrentObligationFn,
+  updateCurrentObligation as updateCurrentObligationFn,
+  deleteCurrentObligation as deleteCurrentObligationFn,
+  addFutureObligation as addFutureObligationFn,
+  deleteFutureObligation as deleteFutureObligationFn,
 } from "@/lib/storage";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,13 +54,26 @@ function mergeData(local: AppData, cloud: AppData): AppData {
   local.budgets.forEach(b => budgetMap.set(b.id, b));
   cloud.budgets.forEach(b => budgetMap.set(b.id, b));
 
-  return {
+  // For assets/obligations, cloud wins (keyed by id)
+  const assetMap = new Map(cloud.assets.map(a => [a.id, a]));
+  local.assets.forEach(a => { if (!assetMap.has(a.id)) assetMap.set(a.id, a); });
+
+  const currentObMap = new Map(cloud.currentObligations.map(o => [o.id, o]));
+  local.currentObligations.forEach(o => { if (!currentObMap.has(o.id)) currentObMap.set(o.id, o); });
+
+  const futureObMap = new Map(cloud.futureObligations.map(f => [f.id, f]));
+  local.futureObligations.forEach(f => { if (!futureObMap.has(f.id)) futureObMap.set(f.id, f); });
+
+  return convertDueFutureObligations({
     transactions: mergedTx,
     categories: mergedCategories,
     budgets: Array.from(budgetMap.values()),
     beginningBalances: { ...local.beginningBalances, ...cloud.beginningBalances },
     carryForwardDisabled: Array.from(new Set([...(local.carryForwardDisabled ?? []), ...(cloud.carryForwardDisabled ?? [])])),
-  };
+    assets: Array.from(assetMap.values()),
+    currentObligations: Array.from(currentObMap.values()),
+    futureObligations: Array.from(futureObMap.values()),
+  });
 }
 
 async function loadCloudData(userId: string): Promise<AppData | null> {
@@ -62,13 +86,17 @@ async function loadCloudData(userId: string): Promise<AppData | null> {
   if (error || !data) return null;
   const d = data.data as any;
   const beginningBalances = d?.beginningBalances ?? {};
-  return {
+  const parsed: AppData = {
     transactions: d?.transactions ?? [],
     categories: d?.categories ?? { ...DEFAULT_CATEGORIES },
     budgets: (d?.budgets ?? []).map((b: any) => ({ id: b.id ?? crypto.randomUUID(), ...b })),
     beginningBalances,
     carryForwardDisabled: d?.carryForwardDisabled ?? Object.keys(beginningBalances),
+    assets: d?.assets ?? DEFAULT_ASSETS.map((a: any) => ({ ...a })),
+    currentObligations: d?.currentObligations ?? [],
+    futureObligations: d?.futureObligations ?? [],
   };
+  return convertDueFutureObligations(parsed);
 }
 
 async function saveCloudData(userId: string, appData: AppData) {
@@ -102,6 +130,18 @@ interface BudgetContextType {
   clearBudgets: (scope: { mode: "all" | "month"; value?: string }) => void;
   setBeginningBalance: (month: string, amount: number) => void;
   toggleCarryForward: (month: string) => void;
+  // Assets
+  addAsset: (name: string) => void;
+  updateAsset: (id: string, newValue: number, note?: string) => void;
+  renameAsset: (id: string, name: string) => void;
+  deleteAsset: (id: string) => void;
+  // Current Obligations
+  addCurrentObligation: (name: string, balance: number, monthlyRepayment?: number) => void;
+  updateCurrentObligation: (id: string, newBalance: number, monthlyRepayment?: number, note?: string) => void;
+  deleteCurrentObligation: (id: string) => void;
+  // Future Obligations
+  addFutureObligation: (name: string, totalAmount: number, startDate: string) => void;
+  deleteFutureObligation: (id: string) => void;
   syncing: boolean;
   pendingSync: PendingSync | null;
   confirmSync: (merge: boolean) => void;
@@ -135,7 +175,7 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
       } else if (cloudData) {
         finalData = cloudData;
       } else {
-        finalData = { transactions: [], categories: { ...DEFAULT_CATEGORIES }, budgets: [], beginningBalances: {}, carryForwardDisabled: [] };
+        finalData = { transactions: [], categories: { ...DEFAULT_CATEGORIES }, budgets: [], beginningBalances: {}, carryForwardDisabled: [], assets: DEFAULT_ASSETS.map(a => ({ ...a })), currentObligations: [], futureObligations: [] };
       }
 
       setData(finalData);
@@ -176,6 +216,9 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         budgets: [],
         beginningBalances: {},
         carryForwardDisabled: [],
+        assets: DEFAULT_ASSETS.map(a => ({ ...a })),
+        currentObligations: [],
+        futureObligations: [],
       };
       setData(empty);
       saveData(empty);
@@ -236,6 +279,9 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
         budgets: [],
         beginningBalances: {},
         carryForwardDisabled: [],
+        assets: DEFAULT_ASSETS.map(a => ({ ...a })),
+        currentObligations: [],
+        futureObligations: [],
       };
       setData(empty);
       saveData(empty);
@@ -309,8 +355,44 @@ export function BudgetProvider({ children }: { children: ReactNode }) {
     updateData(prev => toggleCF(prev, month));
   }, [updateData]);
 
+  const addAsset = useCallback((name: string) => {
+    updateData(prev => addAssetFn(prev, name));
+  }, [updateData]);
+
+  const updateAsset = useCallback((id: string, newValue: number, note?: string) => {
+    updateData(prev => updateAssetFn(prev, id, newValue, note));
+  }, [updateData]);
+
+  const renameAsset = useCallback((id: string, name: string) => {
+    updateData(prev => renameAssetFn(prev, id, name));
+  }, [updateData]);
+
+  const deleteAsset = useCallback((id: string) => {
+    updateData(prev => deleteAssetFn(prev, id));
+  }, [updateData]);
+
+  const addCurrentObligation = useCallback((name: string, balance: number, monthlyRepayment?: number) => {
+    updateData(prev => addCurrentObligationFn(prev, name, balance, monthlyRepayment));
+  }, [updateData]);
+
+  const updateCurrentObligation = useCallback((id: string, newBalance: number, monthlyRepayment?: number, note?: string) => {
+    updateData(prev => updateCurrentObligationFn(prev, id, newBalance, monthlyRepayment, note));
+  }, [updateData]);
+
+  const deleteCurrentObligation = useCallback((id: string) => {
+    updateData(prev => deleteCurrentObligationFn(prev, id));
+  }, [updateData]);
+
+  const addFutureObligation = useCallback((name: string, totalAmount: number, startDate: string) => {
+    updateData(prev => addFutureObligationFn(prev, name, totalAmount, startDate));
+  }, [updateData]);
+
+  const deleteFutureObligation = useCallback((id: string) => {
+    updateData(prev => deleteFutureObligationFn(prev, id));
+  }, [updateData]);
+
   return (
-    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, clearTransactions, clearBudgets, setBeginningBalance, toggleCarryForward, syncing, pendingSync, confirmSync }}>
+    <BudgetContext.Provider value={{ data, period, setPeriod, addTransaction, deleteTransaction, updateTransaction, updateBudgets, addCategory, deleteCategory, clearTransactions, clearBudgets, setBeginningBalance, toggleCarryForward, addAsset, updateAsset, renameAsset, deleteAsset, addCurrentObligation, updateCurrentObligation, deleteCurrentObligation, addFutureObligation, deleteFutureObligation, syncing, pendingSync, confirmSync }}>
       {children}
     </BudgetContext.Provider>
   );
