@@ -54,8 +54,8 @@ export default function SignUpModal() {
         });
         if (error) throw error;
         toast({
-          title: "check your email",
-          description: "we sent you a confirmation link.",
+          title: "welcome!",
+          description: "your account has been created.",
         });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
