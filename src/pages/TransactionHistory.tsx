@@ -17,6 +17,7 @@ export default function TransactionHistory() {
   const { data, deleteTransaction, updateTransaction, period, setPeriod } = useBudget();
   const { transactions } = data;
   const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense">("all");
+  const [matchFilter, setMatchFilter] = useState<"all" | "matched" | "unmatched">("all");
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [editAmount, setEditAmount] = useState("");
   const [editDescription, setEditDescription] = useState("");
