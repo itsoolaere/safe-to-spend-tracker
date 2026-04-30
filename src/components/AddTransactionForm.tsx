@@ -221,6 +221,30 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
                 </div>
               </div>
 
+              {category && subEntries.length > 0 && (
+                <div className="space-y-2 animate-fade-in">
+                  <Label className="text-xs block text-left w-full">match to budget (optional)</Label>
+                  <Select
+                    value={budgetId || "__unmatched__"}
+                    onValueChange={(v) => setBudgetId(v === "__unmatched__" ? "" : v)}
+                  >
+                    <SelectTrigger className="text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__unmatched__">
+                        <span className="italic text-muted-foreground">unmatched</span>
+                      </SelectItem>
+                      {subEntries.map(b => (
+                        <SelectItem key={b.id} value={b.id}>
+                          {b.note || "no note"} — ₦{b.limit.toLocaleString()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <Button type="submit" className="w-full text-xs">
                 <PlusCircle className="w-3.5 h-3.5 mr-1.5" />
                 Add Entry
