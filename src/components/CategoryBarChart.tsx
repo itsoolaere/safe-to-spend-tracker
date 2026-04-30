@@ -22,6 +22,25 @@ function formatShort(n: number): string {
   return `₦${Math.round(n)}`;
 }
 
+const ABBR: Record<string, string> = {
+  Entertainment: "Entertain.",
+  Investments: "Invest.",
+  Transportation: "Transport.",
+  Miscellaneous: "Misc.",
+  Subscriptions: "Subscript.",
+  "Home care": "Home care",
+  "Personal care": "Personal",
+};
+
+function shortenLabel(name: string, max = 9): string {
+  if (ABBR[name]) return ABBR[name];
+  if (name.length <= max) return name;
+  // Multi-word: let line-clamp-2 handle wrapping naturally
+  if (name.includes(" ")) return name;
+  // Single long word: truncate
+  return name.slice(0, max - 1) + "…";
+}
+
 export default function CategoryBarChart({ title, data, type, overBudgetNames, emptyMessage }: CategoryBarChartProps) {
   const maxAmount = data.length > 0 ? Math.max(...data.map((d) => d.amount)) : 0;
 
@@ -79,7 +98,7 @@ export default function CategoryBarChart({ title, data, type, overBudgetNames, e
               {data.map((item) => (
                 <div key={item.name} className="flex-1 text-center">
                   <span className="text-[10px] text-muted-foreground leading-tight line-clamp-2">
-                    {item.name}
+                    {shortenLabel(item.name)}
                   </span>
                 </div>
               ))}
