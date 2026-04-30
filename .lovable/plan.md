@@ -1,29 +1,79 @@
-
-
 ## Problem
 
-The preview is showing a blank page because the app crashes on startup with the error: **"supabaseUrl is required."**
+Each budget has a `category` plus an optional `note` that acts as a subcategory (e.g. category "Food" with notes "Groceries", "Eating out"). Today, transactions only carry a `category`, so:
 
-The root cause: the last diff added `.env` and `.env.*` to `.gitignore`. This caused the `.env` file (which contains `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, etc.) to be excluded from the project, so the Supabase client receives `undefined` and throws an error that crashes the entire app.
+- The current `BudgetTable` shows the **same** category-level actual against **every** sub-entry of that category, so a single ₦5,000 grocery purchase appears to spend 100% of "Groceries" *and* 100% of "Eating out". This reads as "randomly matching entries to different subcategories".
+- There is no way to say "this transaction belongs to the Groceries sub-budget".
 
-## Fix
+## Goal
 
-### 1. Revert the `.gitignore` change for `.env`
+1. Let the user pick a specific budget sub-entry (by note) when adding/editing a transaction.
+2. Each sub-entry's progress bar reflects only the transactions explicitly assigned to it.
+3. Anything in the category with no sub-entry assignment is grouped as a single **"unmatched"** row under that category.
 
-Remove the lines that ignore `.env` files from `.gitignore`. The `.env` in this project is auto-managed by Lovable Cloud and contains only public/anon keys — it is safe and necessary to keep in the repo.
+## Changes
 
-Lines to remove from `.gitignore`:
+### 1. Data model — `src/lib/types.ts`
+
+Add an optional field to `Transaction`:
+
+```ts
+budgetId?: string; // id of the Budget sub-entry this transaction is matched to
 ```
-.env
-.env.*
-!.env.example
-```
 
-### 2. Fix the Edge Function build error (secondary)
+Optional, so all existing transactions remain valid (they become "unmatched").
 
-Remove the `external_id` property from `process-email-queue/index.ts` line 178, as it doesn't exist on the `EmailSendRequest` type. This fixes the TS2353 build error for the edge function deployment.
+### 2. Add-transaction form — `src/components/AddTransactionForm.tsx`
 
-## Summary
+After the user picks a `category`, look up sub-entries for that category in the **current period** (`data.budgets.filter(b => b.month === period && b.type === type && b.category === category && b.limit > 0)`).
 
-Two small edits: one to `.gitignore` (remove 3 lines) and one to `process-email-queue/index.ts` (remove 1 line). The app will load again immediately after the `.gitignore` fix.
+- If 0 sub-entries: no extra UI (transaction stays unmatched, same as today).
+- If ≥1 sub-entries: show a small "Match to budget (optional)" Select beneath the category field with options:
+  - `Unmatched` (default)
+  - One option per sub-entry, labeled `note — ₦limit` (fallback to `"no note"` for entries without a note).
+- On submit, include `budgetId` only when a real sub-entry is chosen.
 
+Reset `budgetId` whenever `type` or `category` changes.
+
+### 3. Edit-transaction dialog
+
+The transaction edit dialog (used in `RecentTransactions` / Journal) gets the same Select so users can re-match existing entries. Default to the transaction's current `budgetId` if any.
+
+### 4. Actuals computation — `src/components/BudgetTable.tsx`
+
+Replace the single `actuals: Record<category, number>` mental model with per-budget-id actuals:
+
+- For each category group, compute:
+  - `byBudget[budget.id] = sum of tx.amount where tx.budgetId === budget.id`
+  - `unmatched = sum of tx.amount for this category where tx.budgetId is missing OR points to a budget id not in this category's entries`
+- Each sub-entry's progress bar uses `byBudget[budget.id]` (no more shared category total).
+- If `unmatched > 0`, render an extra row at the bottom of the category group titled **"unmatched"** (italic, muted) showing `formatCurrency(unmatched)` with no progress bar (or a neutral bar against the category's leftover budget — see Open question).
+- The category header total stays as `sum(byBudget) + unmatched` so the header still equals real spending in that category.
+
+Hover-card transaction list per category continues to show all transactions in the category, with a small badge indicating which sub-entry each one is matched to (or "unmatched").
+
+### 5. Backwards compatibility
+
+- All existing transactions have no `budgetId` → they all show under "unmatched" for their category. Users can then re-match them via the edit dialog.
+- No migration needed (field is optional, stored in the same `user_app_data.data` JSON blob).
+
+### 6. Out of scope
+
+- The dashboard `BudgetMonthlyWidget` keeps its category-level rollup (it doesn't show sub-entries), so no change needed there.
+- `BudgetVsActual.tsx` only passes data through to `BudgetTable`; no logic change needed beyond what's above.
+
+## Files touched
+
+- `src/lib/types.ts` — add optional `budgetId` to `Transaction`
+- `src/components/AddTransactionForm.tsx` — sub-entry Select + include `budgetId` on submit
+- `src/components/RecentTransactions.tsx` (edit dialog) — same Select for editing
+- `src/components/BudgetTable.tsx` — per-budget actuals + "unmatched" row
+- (No DB migration; data persists inside the existing JSON blob.)
+
+## Open question
+
+When showing the **"unmatched"** row, should it:
+- (a) Just display the amount as a plain line (no bar, no limit), or
+- (b) Render a progress bar against `categoryBudgetTotal − sum(byBudget limits already accounted)` so the user can see "unmatched is eating into the category's leftover"?
+
+I'll go with **(a)** by default — it's clearer and matches the "this isn't budgeted to a specific bucket" meaning. Tell me if you'd prefer (b).
