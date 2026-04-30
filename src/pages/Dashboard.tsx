@@ -11,7 +11,7 @@ import { computeOpeningBalance } from "@/lib/balance";
 import { useAuth } from "@/context/AuthContext";
 import { useSignUpGate } from "@/hooks/useSignUpGate";
 import AddTransactionForm, { type AddTransactionFormRef } from "@/components/AddTransactionForm";
-import CategoryChart from "@/components/CategoryChart";
+import CategoryBarChart from "@/components/CategoryBarChart";
 import BeginningBalance from "@/components/BeginningBalance";
 import BudgetDonut from "@/components/BudgetDonut";
 import ClearDataDialog from "@/components/ClearDataDialog";
@@ -20,14 +20,6 @@ import RecentTransactions from "@/components/RecentTransactions";
 import QuickTip from "@/components/QuickTip";
 import type { TipState } from "@/lib/tips";
 
-const EXPENSE_COLORS = [
-"hsl(4, 40%, 72%)", "hsl(20, 35%, 70%)", "hsl(340, 30%, 72%)",
-"hsl(0, 25%, 68%)", "hsl(15, 30%, 74%)", "hsl(350, 28%, 70%)"];
-
-
-const INCOME_COLORS = [
-"hsl(168, 30%, 65%)", "hsl(145, 28%, 68%)", "hsl(160, 25%, 70%)",
-"hsl(180, 22%, 68%)", "hsl(150, 25%, 72%)", "hsl(170, 20%, 66%)"];
 
 
 export default function Dashboard() {
@@ -81,6 +73,11 @@ export default function Dashboard() {
     });
     return Object.entries(categoryMap).map(([name, { spent, budget }]) => ({ name, spent, budget }));
   }, [data.budgets, filtered, period]);
+
+  const overBudgetNames = useMemo(
+    () => new Set(budgetDonutCategories.filter((c) => c.spent > c.budget).map((c) => c.name)),
+    [budgetDonutCategories]
+  );
 
   const formRef = useRef<HTMLDivElement>(null);
   const formApiRef = useRef<AddTransactionFormRef>(null);
@@ -187,20 +184,18 @@ export default function Dashboard() {
           <BudgetDonut categories={budgetDonutCategories} />
 
           <div className="grid grid-cols-2 gap-6">
-            <CategoryChart
+            <CategoryBarChart
               title="How I Spent"
               data={expenseByCategory}
-              colors={EXPENSE_COLORS}
-              transactions={expenseTransactions}
+              type="expense"
+              overBudgetNames={overBudgetNames}
               emptyMessage="No expenses yet" />
 
-            <CategoryChart
+            <CategoryBarChart
               title="What came in"
               data={incomeByCategory}
-              colors={INCOME_COLORS}
-              transactions={incomeTransactions}
+              type="income"
               emptyMessage="No income yet" />
-
           </div>
         </div>
 
