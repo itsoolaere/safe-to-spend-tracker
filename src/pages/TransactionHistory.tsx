@@ -32,6 +32,23 @@ export default function TransactionHistory() {
     return result;
   }, [transactions, period, typeFilter]);
 
+  // Lookup: budget id -> budget (for matched badge label)
+  const budgetById = useMemo(() => {
+    const map: Record<string, typeof data.budgets[number]> = {};
+    data.budgets.forEach(b => { map[b.id] = b; });
+    return map;
+  }, [data.budgets]);
+
+  // Set of "month|type|category" keys that have at least one sub-entry budget,
+  // so we only show "unmatched" where matching is actually possible.
+  const matchableKeys = useMemo(() => {
+    const set = new Set<string>();
+    data.budgets.forEach(b => {
+      if (b.limit > 0) set.add(`${b.month}|${b.type}|${b.category}`);
+    });
+    return set;
+  }, [data.budgets]);
+
   const totalIncome = useMemo(() => filtered.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0), [filtered]);
   const totalExpense = useMemo(() => filtered.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0), [filtered]);
   const netTotal = totalIncome - totalExpense;
