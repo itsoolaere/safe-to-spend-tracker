@@ -21,6 +21,7 @@ export default function TransactionHistory() {
   const [editAmount, setEditAmount] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editCategory, setEditCategory] = useState("");
+  const [editBudgetId, setEditBudgetId] = useState<string>("");
 
   const monthOptions = useMemo(() => getMonthOptions(true), []);
 
