@@ -111,7 +111,7 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
                   <button
                     key={t}
                     type="button"
-                    onClick={() => { setType(t); setCategory(""); }}
+                    onClick={() => { setType(t); setCategory(""); setBudgetId(""); }}
                     className={`flex-1 py-2 rounded-md text-xs font-medium transition-all ${
                       type === t
                         ? t === "income"
