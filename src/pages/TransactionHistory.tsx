@@ -26,28 +26,7 @@ export default function TransactionHistory() {
 
   const monthOptions = useMemo(() => getMonthOptions(true), []);
 
-  const filtered = useMemo(() => {
-    let result = transactions;
-    if (period !== "all") result = result.filter(t => t.date.startsWith(period));
-    if (typeFilter !== "all") result = result.filter(t => t.type === typeFilter);
-    if (matchFilter !== "all") {
-      result = result.filter(t => {
-        const txMonth = t.date.slice(0, 7);
-        const isMatchable = matchableKeys.has(`${txMonth}|${t.type}|${t.category}`);
-        if (matchFilter === "matched") return !!t.budgetId;
-        // unmatched: matchable category but no budgetId assigned
-        return isMatchable && !t.budgetId;
-      });
-    }
-    return result;
-  }, [transactions, period, typeFilter, matchFilter, matchableKeys]);
-
   // Lookup: budget id -> budget (for matched badge label)
-  const budgetById = useMemo(() => {
-    const map: Record<string, typeof data.budgets[number]> = {};
-    data.budgets.forEach(b => { map[b.id] = b; });
-    return map;
-  }, [data.budgets]);
   const budgetById = useMemo(() => {
     const map: Record<string, typeof data.budgets[number]> = {};
     data.budgets.forEach(b => { map[b.id] = b; });
@@ -63,6 +42,22 @@ export default function TransactionHistory() {
     });
     return set;
   }, [data.budgets]);
+
+  const filtered = useMemo(() => {
+    let result = transactions;
+    if (period !== "all") result = result.filter(t => t.date.startsWith(period));
+    if (typeFilter !== "all") result = result.filter(t => t.type === typeFilter);
+    if (matchFilter !== "all") {
+      result = result.filter(t => {
+        const txMonth = t.date.slice(0, 7);
+        const isMatchable = matchableKeys.has(`${txMonth}|${t.type}|${t.category}`);
+        if (matchFilter === "matched") return !!t.budgetId;
+        // unmatched: matchable category but no budgetId assigned
+        return isMatchable && !t.budgetId;
+      });
+    }
+    return result;
+  }, [transactions, period, typeFilter, matchFilter, matchableKeys]);
 
   const totalIncome = useMemo(() => filtered.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0), [filtered]);
   const totalExpense = useMemo(() => filtered.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0), [filtered]);
