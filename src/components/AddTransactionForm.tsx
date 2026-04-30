@@ -157,7 +157,7 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
                       <Button type="button" size="sm" onClick={handleAddCategory}>Add</Button>
                     </div>
                   )}
-                  <Select value={category} onValueChange={setCategory}>
+                  <Select value={category} onValueChange={(v) => { setCategory(v); setBudgetId(""); }}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
