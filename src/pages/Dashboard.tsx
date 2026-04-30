@@ -5,7 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertTriangle, PlusCircle } from "lucide-react";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { computeOpeningBalance } from "@/lib/balance";
 import { useAuth } from "@/context/AuthContext";
@@ -81,6 +81,25 @@ export default function Dashboard() {
 
   const formRef = useRef<HTMLDivElement>(null);
   const formApiRef = useRef<AddTransactionFormRef>(null);
+  const leftColRef = useRef<HTMLDivElement>(null);
+  const [rightColHeight, setRightColHeight] = useState<number | undefined>();
+
+  useEffect(() => {
+    const el = leftColRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(() => {
+      if (window.innerWidth >= 1024) setRightColHeight(el.offsetHeight);
+      else setRightColHeight(undefined);
+    });
+    observer.observe(el);
+    const onResize = () => {
+      if (window.innerWidth >= 1024) setRightColHeight(el.offsetHeight);
+      else setRightColHeight(undefined);
+    };
+    window.addEventListener("resize", onResize);
+    onResize();
+    return () => { observer.disconnect(); window.removeEventListener("resize", onResize); };
+  }, []);
 
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -156,7 +175,7 @@ export default function Dashboard() {
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
         {/* LEFT COLUMN - Summary + Charts */}
-        <div className="lg:col-span-3 space-y-4 sm:space-y-6">
+        <div ref={leftColRef} className="lg:col-span-3 space-y-4 sm:space-y-6 lg:self-start">
           {/* Summary cards */}
           <div className="grid grid-cols-3 gap-3">
             <Card className={`border-none shadow-sm ${overBudget ? "bg-expense text-expense-foreground" : "bg-primary text-primary-foreground"}`}>
@@ -200,7 +219,10 @@ export default function Dashboard() {
         </div>
 
         {/* RIGHT COLUMN - Add Form + Recent Transactions */}
-        <div className="lg:col-span-2 flex flex-col gap-4 sm:gap-6 min-h-0 overflow-hidden">
+        <div
+          className="lg:col-span-2 flex flex-col gap-4 sm:gap-6 overflow-hidden"
+          style={{ height: rightColHeight }}
+        >
           <div ref={formRef}>
             <AddTransactionForm ref={formApiRef} />
           </div>
