@@ -69,7 +69,17 @@ export default function Dashboard() {
     filtered.filter((t) => t.type === "expense").forEach((t) => {
       spentByCategory[t.category] = (spentByCategory[t.category] || 0) + t.amount;
     });
-    return expBudgets.map((b) => ({ name: b.category, spent: spentByCategory[b.category] || 0, budget: b.limit }));
+    // Deduplicate by category name — sum budget limits so multiple entries
+    // for the same category don't inflate totalSpent or create duplicate legend rows
+    const categoryMap: Record<string, { spent: number; budget: number }> = {};
+    expBudgets.forEach((b) => {
+      if (categoryMap[b.category]) {
+        categoryMap[b.category].budget += b.limit;
+      } else {
+        categoryMap[b.category] = { spent: spentByCategory[b.category] || 0, budget: b.limit };
+      }
+    });
+    return Object.entries(categoryMap).map(([name, { spent, budget }]) => ({ name, spent, budget }));
   }, [data.budgets, filtered, period]);
 
   const formRef = useRef<HTMLDivElement>(null);
