@@ -65,9 +65,22 @@ export default function BudgetTable({
       </div>
       <Card className="border-none shadow-sm divide-y divide-border">
         {Object.entries(grouped).map(([category, entries]) => {
-          const actual = actuals[category] || 0;
           const categoryBudgetTotal = entries.reduce((s, b) => s + b.limit, 0);
           const categoryTxs = transactions.filter(t => t.category === category && t.type === type);
+          const entryIds = new Set(entries.map(e => e.id));
+
+          // Per sub-entry actuals
+          const byBudget: Record<string, number> = {};
+          entries.forEach(e => { byBudget[e.id] = 0; });
+          let unmatched = 0;
+          categoryTxs.forEach(t => {
+            if (t.budgetId && entryIds.has(t.budgetId)) {
+              byBudget[t.budgetId] += t.amount;
+            } else {
+              unmatched += t.amount;
+            }
+          });
+          const categoryActual = Object.values(byBudget).reduce((s, v) => s + v, 0) + unmatched;
           const isOpen = openCategories[category] ?? false;
 
           return (
@@ -82,7 +95,9 @@ export default function BudgetTable({
                       {category}
                       <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
                     </span>
-                    <span className="text-xs text-muted-foreground">{formatCurrency(categoryBudgetTotal)}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {formatCurrency(categoryActual)} / {formatCurrency(categoryBudgetTotal)}
+                    </span>
                   </div>
                   </CollapsibleTrigger>
                 </HoverCardTrigger>
@@ -90,7 +105,7 @@ export default function BudgetTable({
                   <div className="p-3 border-b">
                     <p className="font-heading font-semibold text-sm">{category}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {categoryTxs.length} transaction{categoryTxs.length !== 1 ? "s" : ""} · {formatCurrency(actual)}
+                      {categoryTxs.length} transaction{categoryTxs.length !== 1 ? "s" : ""} · {formatCurrency(categoryActual)}
                     </p>
                   </div>
                   <div className="max-h-48 overflow-y-auto">
@@ -99,15 +114,28 @@ export default function BudgetTable({
                     ) : (
                       categoryTxs
                         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                        .map(tx => (
-                          <div key={tx.id} className="flex items-center justify-between px-3 py-2 border-b last:border-b-0 text-xs">
-                            <div className="min-w-0 flex-1 mr-2">
-                              <p className="font-medium truncate">{tx.description || "—"}</p>
-                              <p className="text-muted-foreground">{formatDate(tx.date)}</p>
+                        .map(tx => {
+                          const matched = tx.budgetId && entryIds.has(tx.budgetId)
+                            ? entries.find(e => e.id === tx.budgetId)
+                            : null;
+                          return (
+                            <div key={tx.id} className="flex items-center justify-between px-3 py-2 border-b last:border-b-0 text-xs gap-2">
+                              <div className="min-w-0 flex-1">
+                                <p className="font-medium truncate">{tx.description || "—"}</p>
+                                <p className="text-muted-foreground truncate">
+                                  {formatDate(tx.date)}
+                                  {" · "}
+                                  {matched ? (
+                                    <span>{matched.note || "no note"}</span>
+                                  ) : (
+                                    <span className="italic">unmatched</span>
+                                  )}
+                                </p>
+                              </div>
+                              <span className="font-semibold whitespace-nowrap">{formatCurrency(tx.amount)}</span>
                             </div>
-                            <span className="font-semibold whitespace-nowrap">{formatCurrency(tx.amount)}</span>
-                          </div>
-                        ))
+                          );
+                        })
                     )}
                   </div>
                 </HoverCardContent>
@@ -116,6 +144,7 @@ export default function BudgetTable({
               {/* Entries under this category */}
               <CollapsibleContent className="space-y-2.5">
               {entries.map(budget => {
+                const actual = byBudget[budget.id] || 0;
                 const pct = budget.limit > 0 ? Math.min((actual / budget.limit) * 100, 100) : 0;
                 const over = isExpense && actual > budget.limit;
                 const isEditing = budget.id in editLimits;
@@ -140,7 +169,7 @@ export default function BudgetTable({
                             className="text-xs font-medium inline-flex items-center gap-1 hover:text-primary transition-colors group"
                             onClick={() => setEditLimits(p => ({ ...p, [budget.id]: String(budget.limit) }))}
                           >
-                            {formatCurrency(budget.limit)}
+                            {formatCurrency(actual)} / {formatCurrency(budget.limit)}
                             <Pencil className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition-opacity" />
                           </button>
                         )}
@@ -171,6 +200,21 @@ export default function BudgetTable({
                   </div>
                 );
               })}
+              {unmatched > 0 && (
+                <div className="space-y-1 pl-2 border-l-2 border-dashed border-border">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs italic text-muted-foreground flex-1 truncate">
+                      unmatched
+                    </span>
+                    <span className="text-xs font-medium text-muted-foreground shrink-0">
+                      {formatCurrency(unmatched)}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground/80">
+                    Not assigned to a sub-entry. Edit a transaction to match it.
+                  </p>
+                </div>
+              )}
               </CollapsibleContent>
             </div>
             </Collapsible>

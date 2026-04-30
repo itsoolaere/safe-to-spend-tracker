@@ -21,7 +21,7 @@ export interface AddTransactionFormRef {
 }
 
 const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransactionForm(_props, ref) {
-  const { data, addTransaction, addCategory, deleteCategory } = useBudget();
+  const { data, addTransaction, addCategory, deleteCategory, period } = useBudget();
   const { isGateLocked, setManualTrigger } = useSignUpGate();
   const [open, setOpen] = useState(false);
 
@@ -37,12 +37,19 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
   const [type, setType] = useState<TransactionType>("expense");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
+  const [budgetId, setBudgetId] = useState<string>("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState<Date>(new Date());
   const [newCategory, setNewCategory] = useState("");
   const [showNewCat, setShowNewCat] = useState(false);
 
   const categories = data.categories[type];
+
+  // Sub-entries available for this category in the active period
+  const txMonth = format(date, "yyyy-MM");
+  const subEntries = data.budgets.filter(
+    b => b.month === txMonth && b.type === type && b.category === category && b.limit > 0
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,12 +63,14 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
       category,
       description,
       date: format(date, "yyyy-MM-dd"),
+      ...(budgetId ? { budgetId } : {}),
     });
 
     toast.success(`${type === "income" ? "Income" : "Expense"} added!`);
     setAmount("");
     setDescription("");
     setCategory("");
+    setBudgetId("");
     setDate(new Date());
   };
 
@@ -102,7 +111,7 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
                   <button
                     key={t}
                     type="button"
-                    onClick={() => { setType(t); setCategory(""); }}
+                    onClick={() => { setType(t); setCategory(""); setBudgetId(""); }}
                     className={`flex-1 py-2 rounded-md text-xs font-medium transition-all ${
                       type === t
                         ? t === "income"
@@ -148,7 +157,7 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
                       <Button type="button" size="sm" onClick={handleAddCategory}>Add</Button>
                     </div>
                   )}
-                  <Select value={category} onValueChange={setCategory}>
+                  <Select value={category} onValueChange={(v) => { setCategory(v); setBudgetId(""); }}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
@@ -211,6 +220,30 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
                   />
                 </div>
               </div>
+
+              {category && subEntries.length > 0 && (
+                <div className="space-y-2 animate-fade-in">
+                  <Label className="text-xs block text-left w-full">match to budget (optional)</Label>
+                  <Select
+                    value={budgetId || "__unmatched__"}
+                    onValueChange={(v) => setBudgetId(v === "__unmatched__" ? "" : v)}
+                  >
+                    <SelectTrigger className="text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__unmatched__">
+                        <span className="italic text-muted-foreground">unmatched</span>
+                      </SelectItem>
+                      {subEntries.map(b => (
+                        <SelectItem key={b.id} value={b.id}>
+                          {b.note || "no note"} — ₦{b.limit.toLocaleString()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <Button type="submit" className="w-full text-xs">
                 <PlusCircle className="w-3.5 h-3.5 mr-1.5" />

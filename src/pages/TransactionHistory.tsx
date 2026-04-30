@@ -21,6 +21,7 @@ export default function TransactionHistory() {
   const [editAmount, setEditAmount] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editCategory, setEditCategory] = useState("");
+  const [editBudgetId, setEditBudgetId] = useState<string>("");
 
   const monthOptions = useMemo(() => getMonthOptions(true), []);
 
@@ -45,7 +46,16 @@ export default function TransactionHistory() {
     setEditAmount(String(t.amount));
     setEditDescription(t.description);
     setEditCategory(t.category);
+    setEditBudgetId(t.budgetId ?? "");
   };
+
+  const editSubEntries = useMemo(() => {
+    if (!editing) return [];
+    const month = editing.date.slice(0, 7);
+    return data.budgets.filter(
+      b => b.month === month && b.type === editing.type && b.category === editCategory && b.limit > 0
+    );
+  }, [editing, editCategory, data.budgets]);
 
   const handleSaveEdit = () => {
     if (!editing) return;
@@ -55,6 +65,7 @@ export default function TransactionHistory() {
       amount: num,
       description: editDescription,
       category: editCategory,
+      budgetId: editBudgetId || undefined,
     });
     toast.success("Transaction updated");
     setEditing(null);
@@ -175,7 +186,7 @@ export default function TransactionHistory() {
               </div>
               <div className="space-y-2">
                 <Label>Category</Label>
-                <Select value={editCategory} onValueChange={setEditCategory}>
+                <Select value={editCategory} onValueChange={(v) => { setEditCategory(v); setEditBudgetId(""); }}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {data.categories[editing.type].map(c => (
@@ -184,6 +195,27 @@ export default function TransactionHistory() {
                   </SelectContent>
                 </Select>
               </div>
+              {editSubEntries.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Match to budget</Label>
+                  <Select
+                    value={editBudgetId || "__unmatched__"}
+                    onValueChange={(v) => setEditBudgetId(v === "__unmatched__" ? "" : v)}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__unmatched__">
+                        <span className="italic text-muted-foreground">unmatched</span>
+                      </SelectItem>
+                      {editSubEntries.map(b => (
+                        <SelectItem key={b.id} value={b.id}>
+                          {b.note || "no note"} — ₦{b.limit.toLocaleString()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label>Description</Label>
                 <Input value={editDescription} onChange={e => setEditDescription(e.target.value)} placeholder="What was this for?" onKeyDown={e => e.key === "Enter" && handleSaveEdit()} />
