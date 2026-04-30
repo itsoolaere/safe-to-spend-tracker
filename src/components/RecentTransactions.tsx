@@ -18,7 +18,7 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
   }, [transactions, typeFilter]);
 
   return (
-    <Card className="border-none shadow-none bg-card/40 backdrop-blur-sm">
+    <Card className="border-none shadow-none bg-card/40 backdrop-blur-sm h-full">
       <CardHeader className="flex-row items-center justify-between space-y-0">
         <CardTitle className="text-base font-heading"><CardTitle className="text-base font-heading">Recent Entries</CardTitle></CardTitle>
         <Link to="/history" className="text-xs text-primary hover:underline font-medium">See all entries →

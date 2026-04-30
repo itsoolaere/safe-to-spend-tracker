@@ -200,7 +200,7 @@ export default function Dashboard() {
         </div>
 
         {/* RIGHT COLUMN - Add Form + Recent Transactions */}
-        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+        <div className="lg:col-span-2 flex flex-col gap-4 sm:gap-6">
           <div ref={formRef}>
             <AddTransactionForm ref={formApiRef} />
           </div>
@@ -223,7 +223,9 @@ export default function Dashboard() {
             </p>
           }
           <CategoryManager />
-          <RecentTransactions transactions={filtered} />
+          <div className="flex-1 min-h-0">
+            <RecentTransactions transactions={filtered} />
+          </div>
         </div>
       </div>
 
