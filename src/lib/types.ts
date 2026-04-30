@@ -7,6 +7,7 @@ export interface Transaction {
   category: string;
   description: string;
   date: string; // ISO string
+  budgetId?: string; // Optional id of the Budget sub-entry this transaction is matched to
 }
 
 export interface Budget {
