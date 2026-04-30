@@ -159,7 +159,29 @@ export default function TransactionHistory() {
                   <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${t.type === "income" ? "bg-income" : "bg-expense"}`} />
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{t.description || t.category}</p>
-                    <p className="text-xs text-muted-foreground">{t.category} · {formatDate(t.date)}</p>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <p className="text-xs text-muted-foreground">{t.category} · {formatDate(t.date)}</p>
+                      {(() => {
+                        const matched = t.budgetId ? budgetById[t.budgetId] : null;
+                        const txMonth = t.date.slice(0, 7);
+                        const isMatchable = matchableKeys.has(`${txMonth}|${t.type}|${t.category}`);
+                        if (matched) {
+                          return (
+                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-primary/10 text-primary truncate max-w-[140px]">
+                              matched · {matched.note || "no note"}
+                            </span>
+                          );
+                        }
+                        if (isMatchable) {
+                          return (
+                            <span className="text-[10px] italic font-medium px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                              unmatched
+                            </span>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">
