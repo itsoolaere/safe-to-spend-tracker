@@ -22,7 +22,7 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
         <CardTitle className="text-base font-heading">Recent Entries</CardTitle>
         <Link to="/history" className="text-xs text-primary hover:underline font-medium">See all entries →</Link>
       </CardHeader>
-      <CardContent className="flex-1 min-h-0 overflow-y-auto">
+      <CardContent className="flex-1 min-h-0 overflow-hidden">
         <div className="flex gap-1 mb-4">
           {(["all", "income", "expense"] as const).map((t) =>
           <button
