@@ -37,12 +37,19 @@ const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransac
   const [type, setType] = useState<TransactionType>("expense");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
+  const [budgetId, setBudgetId] = useState<string>("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState<Date>(new Date());
   const [newCategory, setNewCategory] = useState("");
   const [showNewCat, setShowNewCat] = useState(false);
 
   const categories = data.categories[type];
+
+  // Sub-entries available for this category in the active period
+  const txMonth = format(date, "yyyy-MM");
+  const subEntries = data.budgets.filter(
+    b => b.month === txMonth && b.type === type && b.category === category && b.limit > 0
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
