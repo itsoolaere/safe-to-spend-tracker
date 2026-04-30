@@ -21,7 +21,7 @@ export interface AddTransactionFormRef {
 }
 
 const AddTransactionForm = forwardRef<AddTransactionFormRef>(function AddTransactionForm(_props, ref) {
-  const { data, addTransaction, addCategory, deleteCategory } = useBudget();
+  const { data, addTransaction, addCategory, deleteCategory, period } = useBudget();
   const { isGateLocked, setManualTrigger } = useSignUpGate();
   const [open, setOpen] = useState(false);
 
