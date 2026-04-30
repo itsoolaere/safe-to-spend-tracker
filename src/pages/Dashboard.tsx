@@ -13,7 +13,7 @@ import { useSignUpGate } from "@/hooks/useSignUpGate";
 import AddTransactionForm, { type AddTransactionFormRef } from "@/components/AddTransactionForm";
 import CategoryChart from "@/components/CategoryChart";
 import BeginningBalance from "@/components/BeginningBalance";
-import BudgetOverviewWidget from "@/components/BudgetOverviewWidget";
+import BudgetDonut from "@/components/BudgetDonut";
 import ClearDataDialog from "@/components/ClearDataDialog";
 import CategoryManager from "@/components/CategoryManager";
 import RecentTransactions from "@/components/RecentTransactions";
@@ -62,6 +62,15 @@ export default function Dashboard() {
 
   const expenseTransactions = useMemo(() => filtered.filter((t) => t.type === "expense"), [filtered]);
   const incomeTransactions = useMemo(() => filtered.filter((t) => t.type === "income"), [filtered]);
+
+  const budgetDonutCategories = useMemo(() => {
+    const expBudgets = data.budgets.filter((b) => b.month === period && b.limit > 0 && b.type === "expense");
+    const spentByCategory: Record<string, number> = {};
+    filtered.filter((t) => t.type === "expense").forEach((t) => {
+      spentByCategory[t.category] = (spentByCategory[t.category] || 0) + t.amount;
+    });
+    return expBudgets.map((b) => ({ name: b.category, spent: spentByCategory[b.category] || 0, budget: b.limit }));
+  }, [data.budgets, filtered, period]);
 
   const formRef = useRef<HTMLDivElement>(null);
   const formApiRef = useRef<AddTransactionFormRef>(null);
@@ -165,7 +174,7 @@ export default function Dashboard() {
 
           <QuickTip state={tipState} />
 
-          <BudgetOverviewWidget budgets={data.budgets} transactions={transactions} period={period} />
+          <BudgetDonut categories={budgetDonutCategories} />
 
           <div className="grid grid-cols-2 gap-6">
             <CategoryChart
