@@ -46,7 +46,16 @@ export default function TransactionHistory() {
     setEditAmount(String(t.amount));
     setEditDescription(t.description);
     setEditCategory(t.category);
+    setEditBudgetId(t.budgetId ?? "");
   };
+
+  const editSubEntries = useMemo(() => {
+    if (!editing) return [];
+    const month = editing.date.slice(0, 7);
+    return data.budgets.filter(
+      b => b.month === month && b.type === editing.type && b.category === editCategory && b.limit > 0
+    );
+  }, [editing, editCategory, data.budgets]);
 
   const handleSaveEdit = () => {
     if (!editing) return;
@@ -56,6 +65,7 @@ export default function TransactionHistory() {
       amount: num,
       description: editDescription,
       category: editCategory,
+      budgetId: editBudgetId || undefined,
     });
     toast.success("Transaction updated");
     setEditing(null);
