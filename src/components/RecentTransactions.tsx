@@ -12,20 +12,17 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
   const [typeFilter, setTypeFilter] = useState<"all" | "income" | "expense">("all");
 
   const recent = useMemo(() => {
-    const base = transactions.slice(0, 10);
-    const filtered = typeFilter === "all" ? base : base.filter((t) => t.type === typeFilter);
-    return filtered.slice(0, 5);
+    const filtered = typeFilter === "all" ? transactions : transactions.filter((t) => t.type === typeFilter);
+    return filtered;
   }, [transactions, typeFilter]);
 
   return (
-    <Card className="border-none shadow-none bg-card/40 backdrop-blur-sm h-full">
-      <CardHeader className="flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-base font-heading"><CardTitle className="text-base font-heading">Recent Entries</CardTitle></CardTitle>
-        <Link to="/history" className="text-xs text-primary hover:underline font-medium">See all entries →
-
-        </Link>
+    <Card className="border-none shadow-none bg-card/40 backdrop-blur-sm h-full flex flex-col">
+      <CardHeader className="flex-row items-center justify-between space-y-0 flex-shrink-0">
+        <CardTitle className="text-base font-heading">Recent Entries</CardTitle>
+        <Link to="/history" className="text-xs text-primary hover:underline font-medium">See all entries →</Link>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 min-h-0 overflow-y-auto">
         <div className="flex gap-1 mb-4">
           {(["all", "income", "expense"] as const).map((t) =>
           <button
