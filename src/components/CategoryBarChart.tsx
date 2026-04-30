@@ -64,11 +64,11 @@ export default function CategoryBarChart({ title, data, type, overBudgetNames, e
                   ? Math.max(4, (item.amount / maxAmount) * BAR_MAX_HEIGHT)
                   : 4;
                 const isOver = overBudgetNames?.has(item.name) ?? false;
-                const color = isOver
-                  ? "hsl(var(--expense))"
-                  : type === "income"
-                    ? "hsl(var(--income))"
-                    : "hsl(var(--primary))";
+                const color = type === "income"
+                  ? "hsl(var(--income))"
+                  : isOver
+                    ? "hsl(var(--expense))"
+                    : "hsl(var(--expense) / 0.5)";
 
                 return (
                   <div
