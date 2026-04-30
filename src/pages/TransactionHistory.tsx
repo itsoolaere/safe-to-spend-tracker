@@ -30,10 +30,24 @@ export default function TransactionHistory() {
     let result = transactions;
     if (period !== "all") result = result.filter(t => t.date.startsWith(period));
     if (typeFilter !== "all") result = result.filter(t => t.type === typeFilter);
+    if (matchFilter !== "all") {
+      result = result.filter(t => {
+        const txMonth = t.date.slice(0, 7);
+        const isMatchable = matchableKeys.has(`${txMonth}|${t.type}|${t.category}`);
+        if (matchFilter === "matched") return !!t.budgetId;
+        // unmatched: matchable category but no budgetId assigned
+        return isMatchable && !t.budgetId;
+      });
+    }
     return result;
-  }, [transactions, period, typeFilter]);
+  }, [transactions, period, typeFilter, matchFilter, matchableKeys]);
 
   // Lookup: budget id -> budget (for matched badge label)
+  const budgetById = useMemo(() => {
+    const map: Record<string, typeof data.budgets[number]> = {};
+    data.budgets.forEach(b => { map[b.id] = b; });
+    return map;
+  }, [data.budgets]);
   const budgetById = useMemo(() => {
     const map: Record<string, typeof data.budgets[number]> = {};
     data.budgets.forEach(b => { map[b.id] = b; });
