@@ -143,6 +143,26 @@ export default function BudgetDonut({ categories }: BudgetDonutProps) {
             )}
           </div>
         </div>
+
+        {/* Footer */}
+        <div className="mt-4 pt-3 border-t flex items-center justify-between text-xs">
+          <span className="text-muted-foreground tabular-nums">
+            {formatShort(computed.totalSpent)}{" "}
+            <span className="opacity-50">of</span>{" "}
+            {formatShort(computed.totalBudget)}
+          </span>
+          {overCategories.length > 0 && (
+            <span
+              className="px-2 py-0.5 rounded-full text-[11px] font-semibold"
+              style={{
+                background: "hsl(var(--expense) / 0.12)",
+                color: "hsl(var(--expense))",
+              }}
+            >
+              {overCategories.length} over budget
+            </span>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
