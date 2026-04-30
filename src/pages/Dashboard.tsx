@@ -14,7 +14,6 @@ import AddTransactionForm, { type AddTransactionFormRef } from "@/components/Add
 import CategoryChart from "@/components/CategoryChart";
 import BeginningBalance from "@/components/BeginningBalance";
 import BudgetOverviewWidget from "@/components/BudgetOverviewWidget";
-import FinancialOverviewWidget from "@/components/FinancialOverviewWidget";
 import ClearDataDialog from "@/components/ClearDataDialog";
 import CategoryManager from "@/components/CategoryManager";
 import RecentTransactions from "@/components/RecentTransactions";
@@ -166,7 +165,6 @@ export default function Dashboard() {
 
           <QuickTip state={tipState} />
 
-          <FinancialOverviewWidget />
           <BudgetOverviewWidget budgets={data.budgets} transactions={transactions} period={period} />
 
           <div className="grid grid-cols-2 gap-6">

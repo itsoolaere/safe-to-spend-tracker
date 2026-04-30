@@ -10,7 +10,6 @@ import Dashboard from "@/pages/Dashboard";
 import BudgetVsActual from "@/pages/BudgetVsActual";
 import TransactionHistory from "@/pages/TransactionHistory";
 import ResetPassword from "@/pages/ResetPassword";
-import OverviewPage from "@/pages/OverviewPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,8 +28,7 @@ function AppRoutes() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/budget" element={<BudgetVsActual />} />
               <Route path="/history" element={<TransactionHistory />} />
-              <Route path="/overview" element={<OverviewPage />} />
-              <Route path="*" element={<NotFound />} />
+<Route path="*" element={<NotFound />} />
             </Routes>
           </AppLayout>
         }

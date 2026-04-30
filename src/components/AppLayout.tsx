@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, List, Target, TrendingUp, LogOut, LogIn, Globe, Instagram } from "lucide-react";
+import { LayoutDashboard, List, Target, LogOut, LogIn, Globe, Instagram } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useBudget } from "@/context/BudgetContext";
 import { useAuth } from "@/context/AuthContext";
@@ -9,7 +9,6 @@ import SyncConfirmDialog from "@/components/SyncConfirmDialog";
 
 const baseLinks = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/overview", label: "Overview", icon: TrendingUp },
   { to: "/history", label: "Journal", icon: List },
 ];
 
