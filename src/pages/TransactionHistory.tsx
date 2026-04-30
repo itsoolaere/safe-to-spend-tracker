@@ -125,20 +125,37 @@ export default function TransactionHistory() {
 
       {/* Type filter + Totals */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex gap-1">
-          {(["all", "income", "expense"] as const).map(t => (
-            <button
-              key={t}
-              onClick={() => setTypeFilter(t)}
-              className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-colors ${
-                typeFilter === t
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {t === "all" ? "All" : t === "income" ? "Income" : "Expenses"}
-            </button>
-          ))}
+        <div className="flex flex-wrap gap-2">
+          <div className="flex gap-1">
+            {(["all", "income", "expense"] as const).map(t => (
+              <button
+                key={t}
+                onClick={() => setTypeFilter(t)}
+                className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-colors ${
+                  typeFilter === t
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t === "all" ? "all" : t === "income" ? "income" : "expenses"}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-1">
+            {(["all", "matched", "unmatched"] as const).map(m => (
+              <button
+                key={m}
+                onClick={() => setMatchFilter(m)}
+                className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-colors ${
+                  matchFilter === m
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="flex items-center gap-3 text-xs">
           <span className="text-income font-medium">+{formatCurrency(totalIncome)}</span>
