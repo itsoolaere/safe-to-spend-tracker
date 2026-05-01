@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { getAppUrl } from "@/lib/url";
 import { useToast } from "@/hooks/use-toast";
 import { useSignUpGate } from "@/hooks/useSignUpGate";
