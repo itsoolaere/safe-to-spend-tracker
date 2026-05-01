@@ -69,6 +69,19 @@ export default function SignUpModal() {
     }
   };
 
+  const handleGoogleAuth = async () => {
+    setSubmitting(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: getAppUrl(),
+      });
+      if (result.error) throw result.error;
+    } catch (err: any) {
+      toast({ title: "error", description: err.message, variant: "destructive" });
+      setSubmitting(false);
+    }
+  };
+
   return (
     <Dialog open onOpenChange={(open) => { if (!open) dismiss(); }}>
       <DialogPortal>
