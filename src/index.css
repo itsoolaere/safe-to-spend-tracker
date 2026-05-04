@@ -9,45 +9,45 @@
     --font-heading: 'Lora', serif;
     --font-body: 'Source Sans 3', sans-serif;
 
-    --background: 240 100% 99%;
-    --foreground: 30 7% 16%;
+    --background: 28 80% 96%;
+    --foreground: 30 8% 16%;
 
     --card: 0 0% 100%;
-    --card-foreground: 30 7% 16%;
+    --card-foreground: 30 8% 16%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 30 7% 16%;
+    --popover-foreground: 30 8% 16%;
 
     --primary: 240 56% 16%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 20% 95%;
-    --secondary-foreground: 30 7% 16%;
+    --secondary: 28 50% 92%;
+    --secondary-foreground: 30 8% 16%;
 
-    --muted: 240 15% 94%;
-    --muted-foreground: 30 6% 45%;
+    --muted: 28 45% 91%;
+    --muted-foreground: 30 6% 40%;
 
     --accent: 240 56% 16%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 351 79% 21%;
+    --destructive: 18 93% 28%;
     --destructive-foreground: 0 0% 100%;
 
-    --income: 65 47% 59%;
-    --income-foreground: 30 7% 16%;
+    --income: 67 45% 36%;
+    --income-foreground: 0 0% 100%;
 
-    --expense: 351 79% 21%;
+    --expense: 18 93% 28%;
     --expense-foreground: 0 0% 100%;
 
-    --border: 240 15% 90%;
-    --input: 240 15% 90%;
+    --border: 28 35% 88%;
+    --input: 28 35% 88%;
     --ring: 240 56% 16%;
 
     --radius: 0.75rem;
 
     --chart-1: 240 56% 16%;
-    --chart-2: 65 47% 59%;
-    --chart-3: 351 79% 21%;
+    --chart-2: 67 45% 36%;
+    --chart-3: 18 93% 28%;
     --chart-4: 220 40% 55%;
     --chart-5: 280 35% 55%;
     --chart-6: 190 50% 45%;
