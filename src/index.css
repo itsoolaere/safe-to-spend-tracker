@@ -9,38 +9,38 @@
     --font-heading: 'Lora', serif;
     --font-body: 'Source Sans 3', sans-serif;
 
-    --background: 36 23% 95%;
-    --foreground: 36 6% 16%;
+    --background: 240 100% 99%;
+    --foreground: 30 7% 16%;
 
     --card: 0 0% 100%;
-    --card-foreground: 36 6% 16%;
+    --card-foreground: 30 7% 16%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 36 6% 16%;
+    --popover-foreground: 30 7% 16%;
 
-    --primary: 29 46% 59%;
+    --primary: 240 56% 16%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 36 20% 91%;
-    --secondary-foreground: 36 6% 16%;
+    --secondary: 240 20% 95%;
+    --secondary-foreground: 30 7% 16%;
 
-    --muted: 36 12% 90%;
-    --muted-foreground: 36 6% 45%;
+    --muted: 240 15% 94%;
+    --muted-foreground: 30 6% 45%;
 
     --accent: 240 56% 16%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 42% 64%;
+    --destructive: 351 79% 21%;
     --destructive-foreground: 0 0% 100%;
 
-    --income: 152 28% 49%;
-    --income-foreground: 0 0% 100%;
+    --income: 65 47% 59%;
+    --income-foreground: 30 7% 16%;
 
-    --expense: 0 42% 64%;
+    --expense: 351 79% 21%;
     --expense-foreground: 0 0% 100%;
 
-    --border: 36 15% 87%;
-    --input: 36 15% 87%;
+    --border: 240 15% 90%;
+    --input: 240 15% 90%;
     --ring: 240 56% 16%;
 
     --radius: 0.75rem;
