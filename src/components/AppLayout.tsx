@@ -95,10 +95,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <footer className="border-t py-3 sm:mb-0 mb-14">
         <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
           <span>A Product of Olaere's Studio</span>
-          <a href="https://itsoolaere.studio" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Website">
+          <a href="https://itsoolaere.studio" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-accent transition-colors" aria-label="Website">
             <Globe className="w-3.5 h-3.5" />
           </a>
-          <a href="https://www.instagram.com/itsoolaere" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" aria-label="Instagram">
+          <a href="https://www.instagram.com/itsoolaere" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-accent transition-colors" aria-label="Instagram">
             <Instagram className="w-3.5 h-3.5" />
           </a>
         </div>

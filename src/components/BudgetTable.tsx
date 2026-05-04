@@ -91,7 +91,7 @@ export default function BudgetTable({
                 <HoverCardTrigger asChild>
                   <CollapsibleTrigger asChild>
                   <div className="flex items-center justify-between cursor-pointer">
-                    <span className="font-medium text-sm hover:text-primary transition-colors flex items-center gap-1">
+                    <span className="font-medium text-sm hover:text-accent transition-colors flex items-center gap-1">
                       {category}
                       <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
                     </span>
@@ -166,7 +166,7 @@ export default function BudgetTable({
                           />
                         ) : (
                           <button
-                            className="text-xs font-medium inline-flex items-center gap-1 hover:text-primary transition-colors group"
+                            className="text-xs font-medium inline-flex items-center gap-1 hover:text-accent transition-colors group"
                             onClick={() => setEditLimits(p => ({ ...p, [budget.id]: String(budget.limit) }))}
                           >
                             {formatCurrency(actual)} / {formatCurrency(budget.limit)}
